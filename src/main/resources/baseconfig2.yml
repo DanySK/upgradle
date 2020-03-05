@@ -1,0 +1,15 @@
+include:
+  - user: .*
+    repo: .*
+    branch:
+      - master
+      - develop
+  - user: Protelis
+    repo: .*
+    branch: develop
+exclude:
+  user: Protelis
+  repo: Protelis
+  branch: master
+modules:
+  - GradleWrapper

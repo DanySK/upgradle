@@ -1,0 +1,5 @@
+.attach_pid*
+.gradle/
+.idea/
+build/
+myrc

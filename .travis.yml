@@ -1,0 +1,25 @@
+language: minimal
+os:
+  - linux
+  - windows
+  - macos
+env:
+  global:
+    - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
+    - GRAVIS="$HOME/gravis"
+  matrix:
+    - JDK="adopt@1.8"
+    - JDK="adopt-openj9@1.8"
+    - JDK="adopt@"
+    - JDK="adopt-openj9"
+before_install:
+  - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
+  - source $GRAVIS/install-jdk
+install:
+  - ./gradlew clean build
+before_cache:
+  - $GRAVIS/clean-gradle-cache
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
