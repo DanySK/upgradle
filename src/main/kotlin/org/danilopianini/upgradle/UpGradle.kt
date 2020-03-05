@@ -4,6 +4,8 @@ import com.google.gson.Gson
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.toml
 import com.uchuhimo.konf.source.yaml
+import org.danilopianini.upgradle.api.Credentials
+import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
 import org.danilopianini.upgradle.config.Configurator
 import org.eclipse.egit.github.core.PullRequest
 import org.eclipse.egit.github.core.PullRequestMarker
@@ -18,7 +20,7 @@ import java.net.URL
 import kotlin.system.exitProcess
 
 class UpGradle(configuration: Config.()->Config = {from.yaml.resource("upgradle.yml")}) {
-    val config = Configurator.load(configuration)
+    val configuration = Configurator.load(configuration)
 
     fun main(vararg args: String) {
         val upgradle: UpGradle = when(args.size) {
@@ -50,6 +52,11 @@ class UpGradle(configuration: Config.()->Config = {from.yaml.resource("upgradle.
                 println("If no parameter is provided, the upgradle.yml will get loaded from classpath")
                 exitProcess(1)
             }
+        }
+        val credentials = Credentials.loadGitHubCredentials()
+        val repositoryService = RepositoryService().authenticated(credentials)
+        upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { remote ->
+            upgradle.configuration.modules
         }
     }
 }
