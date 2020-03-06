@@ -13,6 +13,7 @@ dependencies {
     implementation("org.eclipse.jgit:org.eclipse.jgit:+")
     implementation("com.uchuhimo:konf:+")
     implementation("io.github.classgraph:classgraph:4.8.65")
+    implementation("io.arrow-kt:arrow-core:0.10.4")
     implementation(kotlin("stdlib-jdk8"))
 }
 
