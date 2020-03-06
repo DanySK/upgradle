@@ -11,6 +11,7 @@ import org.eclipse.egit.github.core.IRepositoryIdProvider
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
 import org.eclipse.egit.github.core.service.RepositoryService
+import java.util.stream.Collectors
 
 data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
     init {
@@ -56,32 +57,14 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
         service.repositories.parallelStream()
             .flatMap { remote ->
-                includes.map { it.validBranchesFor(service, remote) }
+                includes.parallelStream()
+                    .flatMap { it.validBranchesFor(service, remote).stream() }
+                    .collect(Collectors.toList())
                     .distinctBy { it.name }
+                    .stream()
+                    .map { SelectedRemoteBranch(remote, it) }
             }
-//        .filter {
-//            it.owner.name.matches()
-//        }
-//        .flatMap { remote ->
-//            // For each name match, add the required branches
-//            includes
-//                .filter { include ->
-//                    include.asRegexFilters.any { remote.name.matches(it) }
-//                }
-//                .flatMap { descriptor ->
-//                    service.getBranches { remote.id.toString() }
-//                        .filter { branch -> descriptor.branches.any { branch.name.matches(Regex(it)) } }
-//                        .map { SelectedRemoteBranch(remote, it) }
-//                }
-//                .asSequence()
-//        }
-//        .filterNot { (repository, branch) ->
-//            excludes.any { repository.name.matches(it.asRegexFilter) && branch.name.matches(Regex()) }
-//        }
-//        .filter { (repository, branch) ->
-//            service.getBranches(IRepositoryIdProvider { repository.id })
-//        }
-        .toSet()
+            .collect(Collectors.toSet())
 
 }
 
