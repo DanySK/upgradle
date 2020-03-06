@@ -6,6 +6,7 @@ import com.uchuhimo.konf.source.toml
 import com.uchuhimo.konf.source.yaml
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
+import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
 import org.danilopianini.upgradle.config.Configurator
 import org.eclipse.egit.github.core.PullRequest
 import org.eclipse.egit.github.core.PullRequestMarker
@@ -55,8 +56,15 @@ class UpGradle(configuration: Config.()->Config = {from.yaml.resource("upgradle.
         }
         val credentials = Credentials.loadGitHubCredentials()
         val repositoryService = RepositoryService().authenticated(credentials)
-        upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { remote ->
-            upgradle.configuration.modules
+        upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { (repository, branch) ->
+            upgradle.configuration.modules.map { it.asUpGradleModule }.forEach { module ->
+                val destination = createTempDir("upgradle")
+//                val local = Git.cloneRepository()
+//                    .setCredentialsProvider(credentials)
+//                    .setURI(repository.htmlUrl)
+//                    .setDirectory(destination)
+//                    .call()
+            }
         }
     }
 }

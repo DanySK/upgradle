@@ -1,9 +1,15 @@
 package org.danilopianini.upgradle.config
 
+import arrow.core.ListK
+import arrow.core.extensions.listk.applicative.applicative
+import arrow.core.fix
+import arrow.core.k
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
+import org.eclipse.egit.github.core.IRepositoryIdProvider
 import org.eclipse.egit.github.core.Repository
+import org.eclipse.egit.github.core.RepositoryBranch
 import org.eclipse.egit.github.core.service.RepositoryService
 
 data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
@@ -23,26 +29,58 @@ data class GitHubAccess(val token: String? = null, val user: String? = null, val
     }
 }
 
-data class SelectedRemoteBranch(val repository: Repository, val branch: String)
+data class SelectedRemoteBranch(val repository: Repository, val branch: RepositoryBranch)
 
-data class RepoDescriptor(val user: List<String>, val repo: List<String>, val branch: List<String> = listOf(".*")) {
-    val asRegexFilter by lazy { Regex("""${user}\/${repo}""") }
+data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val branches: List<String> = listOf(".*")) {
+    val ownersRegex by lazy { owners.toRegex() }
+    val reposRegex by lazy { repos.toRegex() }
+    val branchesRegex by lazy { branches.toRegex() }
 
+    fun validBranchesFor(service: RepositoryService, repository: Repository): List<RepositoryBranch> =
+        if (ownersRegex.any { it.matches(repository.owner.name) }
+            && reposRegex.any { it.matches(repository.name) }
+        ) {
+            service.getBranches { repository.id.toString() }
+                .filter { branch: RepositoryBranch -> branchesRegex.any{ it.matches(branch.name) } }
+        } else {
+            emptyList()
+        }
+
+    companion object {
+        private fun List<String>.toRegex() = map { Regex(it) }
+    }
 }
 
-data class Configuration(val include: List<RepoDescriptor>, val exclude: List<RepoDescriptor>, val modules: List<String>) {
+data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<RepoDescriptor>, val modules: List<String>) {
 
-    fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> = service.repositories.asSequence()
-        .flatMap { repo ->
-            // For each name match, add the required branches
-            include
-                .filter { repo.name.matches(it.asRegexFilter) }
-                .flatMap { descriptor -> descriptor.branch.map { SelectedRemoteBranch(repo, it) } }
-                .asSequence()
-        }
-        .filterNot { (repository, branch) ->
-            exclude.any { repository.name.matches(it.asRegexFilter) && it.branch.contains(branch) }
-        }
+    fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
+        service.repositories.parallelStream()
+            .flatMap { remote ->
+                includes.map { it.validBranchesFor(service, remote) }
+                    .distinctBy { it.name }
+            }
+//        .filter {
+//            it.owner.name.matches()
+//        }
+//        .flatMap { remote ->
+//            // For each name match, add the required branches
+//            includes
+//                .filter { include ->
+//                    include.asRegexFilters.any { remote.name.matches(it) }
+//                }
+//                .flatMap { descriptor ->
+//                    service.getBranches { remote.id.toString() }
+//                        .filter { branch -> descriptor.branches.any { branch.name.matches(Regex(it)) } }
+//                        .map { SelectedRemoteBranch(remote, it) }
+//                }
+//                .asSequence()
+//        }
+//        .filterNot { (repository, branch) ->
+//            excludes.any { repository.name.matches(it.asRegexFilter) && branch.name.matches(Regex()) }
+//        }
+//        .filter { (repository, branch) ->
+//            service.getBranches(IRepositoryIdProvider { repository.id })
+//        }
         .toSet()
 
 }
