@@ -64,6 +64,13 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
                     .stream()
                     .map { SelectedRemoteBranch(remote, it) }
             }
+            .filter { (remote, branch) ->
+                excludes.none { exclusion ->
+                    exclusion.ownersRegex.any { it.matches(remote.owner.name) }
+                        && exclusion.reposRegex.any { it.matches(remote.name) }
+                        && exclusion.branchesRegex.any { it.matches(branch.name) }
+                }
+            }
             .collect(Collectors.toSet())
 
 }
