@@ -1,8 +1,8 @@
 includes:
-  - owners: DanySK
-    repos: travis.*
+  - owners: Alchemist.*
+    repos: Alchemist
     branches:
-      - master
+      - develop
 excludes:
   owners: Protelis
   repos: Protelis

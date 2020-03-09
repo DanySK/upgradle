@@ -3,6 +3,7 @@ package org.danilopianini.upgradle.modules
 import com.google.gson.Gson
 import org.danilopianini.upgradle.CachedFor
 import org.danilopianini.upgradle.api.Module
+import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
 import java.io.File
@@ -11,12 +12,12 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
 @ExperimentalTime
-class GradleWrapper() : Module {
+class GradleWrapper() : GradleRootModule() {
 
     private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
-    override fun operationsFor(localDirectory: File): List<Operation> {
-        val properties = localDirectory.gradleWrapperProperties
+    override fun operationsInProjectRoot(projectRoot: File): List<Operation> {
+        val properties = projectRoot.gradleWrapperProperties
         if (properties.exists() && properties.isFile) {
             val oldProperties = properties.readText()
             val versionMatch = Regex("gradle-($versionRegex).*.zip")
@@ -35,8 +36,8 @@ class GradleWrapper() : Module {
                         pullRequestMessage = "Upgrades the gradle wrapper from $localGradleVersion to $latestGradle. Courtesy of UpGradle."
                     ) {
                         val newProperties = oldProperties.replace(versionMatch, "gradle-$latestGradle-bin.zip")
-                        gradleWrapperProperties.writeText(newProperties)
-                        listOf(gradleWrapperProperties.absolutePath)
+                        projectRoot.gradleWrapperProperties.writeText(newProperties)
+                        listOf(OnFile(projectRoot.gradleWrapperProperties))
                     }
                     return listOf(todo)
                 }

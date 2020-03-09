@@ -2,14 +2,12 @@ package org.danilopianini.upgradle.api
 
 import java.io.File
 
-interface Operation {
+interface Operation: ()->List<Change> {
 
     val branch: String
     val commitMessage: String
     val pullRequestTitle: String
     val pullRequestMessage: String
-
-    operator fun invoke(destination: File): List<String>
 
 }
 
@@ -18,7 +16,11 @@ class SimpleOperation(
     override val commitMessage: String,
     override val pullRequestTitle: String,
     override val pullRequestMessage: String,
-    private val invoke: File.()->List<String>
+    private val operation: ()->List<Change>
 ) : Operation {
-    override fun invoke(destination: File): List<String> = destination.invoke()
+    override fun invoke(): List<Change> = operation()
 }
+
+sealed class Change
+data class OnFile(val file: File): Change()
+data class Pattern(val pattern: String): Change()
