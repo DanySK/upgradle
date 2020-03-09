@@ -1,0 +1,11 @@
+includes:
+  - owners: DanySK
+    repos: travis.*
+    branches:
+      - master
+excludes:
+  owners: Protelis
+  repos: Protelis
+  branches: master
+modules:
+  - GradleWrapper

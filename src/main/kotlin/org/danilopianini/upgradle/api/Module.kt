@@ -2,18 +2,16 @@ package org.danilopianini.upgradle.api
 
 import arrow.core.ListK
 import arrow.core.extensions.listk.applicative.applicative
-import arrow.core.extensions.listk.foldable.firstOption
+import arrow.core.fix
 import arrow.core.k
-import arrow.core.orElse
 import io.github.classgraph.ClassGraph
-import org.eclipse.jgit.util.StringUtils
-import kotlin.reflect.KClass
+import java.io.File
 
 interface Module {
     val name: String
         get() = javaClass.simpleName
 
-    operator fun invoke(parameters: Map<String, Any> = emptyMap())
+    fun operationsFor(localDirectory: File): List<Operation>
 
     object StringExtensions {
         val subclasses by lazy {
@@ -21,10 +19,13 @@ interface Module {
                 .blacklistPackages("java", "javax")
                 .enableAllInfo()
                 .scan()
-                .getSubclasses(Module::class.java.canonicalName)
+                .getClassesImplementing(Module::class.java.canonicalName)
+                .filter { !it.isAbstract }
                 .loadClasses()
+                .map { it as Class<out Module> }
         }
-        val String.asUpGradleModule get() =
+
+        val String.asUpGradleModule: Module get() =
             ListK.applicative()
                 .map(
                     // Cartesian product of:
@@ -34,11 +35,10 @@ interface Module {
                     listOf(false, true).k()
                 ) { (name, withCase) ->
                     subclasses.find { equals(name.invoke(it), ignoreCase = withCase) }
-                }
-                .firstOption()
-                .orElse {
-                    throw IllegalStateException("No module available for $this")
-                }
+                }.fix()
+                .filterNotNull()
+                .first()?.getConstructor()?.newInstance()
+                ?: throw IllegalStateException("No module available for $this")
     }
 
 }

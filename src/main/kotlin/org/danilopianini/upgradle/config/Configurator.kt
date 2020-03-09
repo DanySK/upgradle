@@ -33,19 +33,23 @@ data class GitHubAccess(val token: String? = null, val user: String? = null, val
 data class SelectedRemoteBranch(val repository: Repository, val branch: RepositoryBranch)
 
 data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val branches: List<String> = listOf(".*")) {
+
     val ownersRegex by lazy { owners.toRegex() }
     val reposRegex by lazy { repos.toRegex() }
     val branchesRegex by lazy { branches.toRegex() }
 
-    fun validBranchesFor(service: RepositoryService, repository: Repository): List<RepositoryBranch> =
-        if (ownersRegex.any { it.matches(repository.owner.name) }
-            && reposRegex.any { it.matches(repository.name) }
+    fun validBranchesFor(service: RepositoryService, repository: Repository): List<RepositoryBranch> {
+        val owner = repository.owner.login
+        val name = repository.name
+        if (ownersRegex.any { it.matches(owner) }
+            && reposRegex.any { it.matches(name) }
         ) {
-            service.getBranches { repository.id.toString() }
+            return service.getBranches { "$owner/$name" }
                 .filter { branch: RepositoryBranch -> branchesRegex.any{ it.matches(branch.name) } }
         } else {
-            emptyList()
+            return  emptyList()
         }
+    }
 
     companion object {
         private fun List<String>.toRegex() = map { Regex(it) }
@@ -66,7 +70,7 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
             }
             .filter { (remote, branch) ->
                 excludes.none { exclusion ->
-                    exclusion.ownersRegex.any { it.matches(remote.owner.name) }
+                    exclusion.ownersRegex.any { it.matches(remote.owner.login) }
                         && exclusion.reposRegex.any { it.matches(remote.name) }
                         && exclusion.branchesRegex.any { it.matches(branch.name) }
                 }
@@ -78,13 +82,4 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
 object Configurator {
     fun load(body: Config.() -> Config): Configuration = Config().body()
             .at("").toValue()
-}
-
-
-
-fun main() {
-    val result = Configurator.load {
-        from.yaml.resource("baseconfig2.yml")
-    }
-    println(result)
 }
