@@ -22,5 +22,4 @@ abstract class GradleRootModule: Module {
         }
 
     abstract fun operationsInProjectRoot(projectRoot: File): List<Operation>
-
 }
