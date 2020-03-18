@@ -13,14 +13,15 @@ sealed class Credentials {
             val credentials: List<Credentials> = validPrefixes
                 .flatMap { prefix -> suffixes.map { prefix + it } }
                 .map { it to System.getenv(it) }
-                .filter { (_, value) -> value != null}
+                .filter { (_, value) -> value != null }
                 .groupBy { (name, _) -> name.endsWith("TOKEN") }
                 .filterNot { (_, keys) -> keys.isEmpty() }
                 .mapValues { it.value.toMap() }
                 .map { (isToken, keys) ->
                     fun singleValueMatching(
-                            filter: (String) -> Boolean = {true},
-                            onErrorMessage: (Collection<String>) -> String): String {
+                        filter: (String) -> Boolean = { true },
+                        onErrorMessage: (Collection<String>) -> String
+                    ): String {
                         val entries = keys.filterKeys(filter).values
                         require(entries.size == 1) { onErrorMessage(entries) }
                         return entries.first()
@@ -43,15 +44,15 @@ sealed class Credentials {
             return credentials.firstOrNull() ?: throw IllegalStateException("No token, username, or password provided")
         }
 
-        fun <S: GitHubService> S.authenticated(credentials: Credentials): S = this.also {
-            when(credentials) {
+        fun <S : GitHubService> S.authenticated(credentials: Credentials): S = this.also {
+            when (credentials) {
                 is Token -> client.setOAuth2Token(credentials.token)
                 is UserAndPassword -> client.setCredentials(credentials.user, credentials.password)
             }
         }
 
-        fun <C: TransportCommand<*, *>> C.authenticated(credentials: Credentials): C = this.also {
-            setCredentialsProvider(when(credentials) {
+        fun <C : TransportCommand<*, *>> C.authenticated(credentials: Credentials): C = this.also {
+            setCredentialsProvider(when (credentials) {
                 is Token -> UsernamePasswordCredentialsProvider(credentials.token, "")
                 is UserAndPassword -> UsernamePasswordCredentialsProvider(credentials.user, credentials.password)
             })
@@ -59,5 +60,4 @@ sealed class Credentials {
     }
 }
 class Token(val token: String) : Credentials()
-class UserAndPassword(val user: String, val password: String): Credentials()
-
+class UserAndPassword(val user: String, val password: String) : Credentials()

@@ -1,19 +1,16 @@
 package org.danilopianini.upgradle
 
-import java.util.concurrent.TimeUnit
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
-import kotlin.time.AbstractDoubleTimeSource
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
 @ExperimentalTime
 class CachedFor<T>(
     val duration: Duration,
-    private val load: ()->T
-): ReadOnlyProperty<Any?, T> {
+    private val load: () -> T
+) : ReadOnlyProperty<Any?, T> {
 
     private val timeSource: TimeSource = TimeSource.Monotonic
     var lastTime = timeSource.markNow()

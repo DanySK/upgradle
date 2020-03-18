@@ -1,13 +1,7 @@
 package org.danilopianini.upgradle.config
 
-import arrow.core.ListK
-import arrow.core.extensions.listk.applicative.applicative
-import arrow.core.fix
-import arrow.core.k
 import com.uchuhimo.konf.Config
-import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
-import org.eclipse.egit.github.core.IRepositoryIdProvider
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
 import org.eclipse.egit.github.core.service.RepositoryService
@@ -41,13 +35,14 @@ data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val
     fun validBranchesFor(service: RepositoryService, repository: Repository): List<RepositoryBranch> {
         val owner = repository.owner.login
         val name = repository.name
-        if (ownersRegex.any { it.matches(owner) }
-            && reposRegex.any { it.matches(name) }
-        ) {
-            return service.getBranches { "$owner/$name" }
-                .filter { branch: RepositoryBranch -> branchesRegex.any { it.matches(branch.name) } }
+        val repoMatches = ownersRegex.any { it.matches(owner) } && reposRegex.any { it.matches(name) }
+        return if (repoMatches) {
+            service.getBranches { "$owner/$name" }
+                .filter { branch: RepositoryBranch ->
+                    branchesRegex.any { it.matches(branch.name) }
+                }
         } else {
-            return emptyList()
+            emptyList()
         }
     }
 

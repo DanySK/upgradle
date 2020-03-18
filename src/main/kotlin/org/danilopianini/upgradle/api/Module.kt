@@ -40,5 +40,4 @@ interface Module {
                 .first()?.getConstructor()?.newInstance()
                 ?: throw IllegalStateException("No module available for $this")
     }
-
 }
