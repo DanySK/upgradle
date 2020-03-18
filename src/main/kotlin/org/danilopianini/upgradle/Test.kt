@@ -16,7 +16,7 @@ fun main() {
     val username = "DanySK"
     val password = "********"
     val gson = Gson()
-    val service = RepositoryService();
+    val service = RepositoryService()
     val gradleRepo = service.getRepository("gradle", "gradle")
     val response = URL("https://api.github.com/repos/gradle/gradle/releases").readText()
     println(response)
