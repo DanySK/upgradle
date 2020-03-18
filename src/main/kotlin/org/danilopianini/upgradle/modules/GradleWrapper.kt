@@ -55,7 +55,7 @@ class GradleWrapper : GradleRootModule() {
             val response = URL("https://api.github.com/repos/gradle/gradle/releases").readText()
             val releases = gson.fromJson(response, List::class.java)
             releases.asSequence()
-                .filterIsInstance<Map<String,String>>()
+                .filterIsInstance<Map<String, String>>()
                 .map { it["name"] }
                 .filterNotNull()
                 .first { it.matches(Regex(versionRegex)) }
