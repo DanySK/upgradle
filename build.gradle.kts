@@ -6,6 +6,7 @@ plugins {
     id("org.danilopianini.git-sensitive-semantic-versioning") version "0.2.2"
     id("org.danilopianini.publish-on-central") version "0.2.3"
     id("org.jetbrains.dokka") version "0.10.1"
+    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
 }
 
 repositories {
