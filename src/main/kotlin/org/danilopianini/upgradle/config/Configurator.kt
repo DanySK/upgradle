@@ -76,7 +76,6 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
                 }
             }
             .collect(Collectors.toSet())
-
 }
 
 object Configurator {
