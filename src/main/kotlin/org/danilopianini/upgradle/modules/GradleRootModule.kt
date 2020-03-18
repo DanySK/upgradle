@@ -4,7 +4,7 @@ import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.Operation
 import java.io.File
 
-abstract class GradleRootModule: Module {
+abstract class GradleRootModule : Module {
 
     protected val File.isGradleProject
         get() = listFiles()
