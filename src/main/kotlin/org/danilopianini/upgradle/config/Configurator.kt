@@ -45,7 +45,7 @@ data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val
             && reposRegex.any { it.matches(name) }
         ) {
             return service.getBranches { "$owner/$name" }
-                .filter { branch: RepositoryBranch -> branchesRegex.any{ it.matches(branch.name) } }
+                .filter { branch: RepositoryBranch -> branchesRegex.any { it.matches(branch.name) } }
         } else {
             return emptyList()
         }
