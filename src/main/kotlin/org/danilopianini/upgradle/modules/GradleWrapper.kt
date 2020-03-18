@@ -2,7 +2,6 @@ package org.danilopianini.upgradle.modules
 
 import com.google.gson.Gson
 import org.danilopianini.upgradle.CachedFor
-import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
@@ -12,7 +11,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
 @ExperimentalTime
-class GradleWrapper() : GradleRootModule() {
+class GradleWrapper : GradleRootModule() {
 
     private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
@@ -56,7 +55,7 @@ class GradleWrapper() : GradleRootModule() {
             val response = URL("https://api.github.com/repos/gradle/gradle/releases").readText()
             val releases = gson.fromJson(response, List::class.java)
             releases.asSequence()
-                .map { it as Map<String, String> }
+                .filterIsInstance<Map<String,String>>()
                 .map { it["name"] }
                 .filterNotNull()
                 .first { it.matches(Regex(versionRegex)) }
