@@ -70,9 +70,9 @@ data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<
             }
             .filter { (remote, branch) ->
                 excludes.none { exclusion ->
-                    exclusion.ownersRegex.any { it.matches(remote.owner.login) }
-                        && exclusion.reposRegex.any { it.matches(remote.name) }
-                        && exclusion.branchesRegex.any { it.matches(branch.name) }
+                    exclusion.ownersRegex.any { it.matches(remote.owner.login) } &&
+                        exclusion.reposRegex.any { it.matches(remote.name) } &&
+                        exclusion.branchesRegex.any { it.matches(branch.name) }
                 }
             }
             .collect(Collectors.toSet())
