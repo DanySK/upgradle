@@ -26,7 +26,11 @@ data class GitHubAccess(val token: String? = null, val user: String? = null, val
 
 data class SelectedRemoteBranch(val repository: Repository, val branch: RepositoryBranch)
 
-data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val branches: List<String> = listOf(".*")) {
+data class RepoDescriptor(
+    val owners: List<String>,
+    val repos: List<String>,
+    val branches: List<String> = listOf(".*")
+) {
 
     val ownersRegex by lazy { owners.toRegex() }
     val reposRegex by lazy { repos.toRegex() }
@@ -51,7 +55,11 @@ data class RepoDescriptor(val owners: List<String>, val repos: List<String>, val
     }
 }
 
-data class Configuration(val includes: List<RepoDescriptor>, val excludes: List<RepoDescriptor>, val modules: List<String>) {
+data class Configuration(
+    val includes: List<RepoDescriptor>,
+    val excludes: List<RepoDescriptor>,
+    val modules: List<String>
+) {
 
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
         service.repositories.parallelStream()

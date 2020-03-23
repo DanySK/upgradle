@@ -2,9 +2,11 @@ package org.danilopianini.upgradle.modules
 
 import com.google.gson.Gson
 import org.danilopianini.upgradle.CachedFor
+import org.danilopianini.upgradle.UpGradle
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
 import kotlin.time.ExperimentalTime
@@ -23,16 +25,16 @@ class GradleWrapper : GradleRootModule() {
             val localGradleVersionMatch = versionMatch.find(oldProperties)?.groupValues
             if (localGradleVersionMatch != null && localGradleVersionMatch.size >= 2) {
                 val localGradleVersion = localGradleVersionMatch[1]
-                println("Detected Gradle $localGradleVersion")
+                logger.info("Detected Gradle $localGradleVersion")
                 if (localGradleVersion.startsWith(latestGradle)) {
-                    println("Version $localGradleVersion seems to be the same or newer than the latest found $latestGradle")
+                    logger.info("Version {} >= than the latest found {}", localGradleVersion, latestGradle)
                 } else {
                     val description = "Upgrade Gradle Wrapper to $latestGradle"
                     val todo = SimpleOperation(
                         branch = "bump-gradle-wrapper-$localGradleVersion-to-$latestGradle",
                         commitMessage = description,
                         pullRequestTitle = description,
-                        pullRequestMessage = "Upgrades the gradle wrapper from $localGradleVersion to $latestGradle. Courtesy of UpGradle."
+                        pullRequestMessage = "Gradle wrapper $localGradleVersion -> $latestGradle."
                     ) {
                         val newProperties = oldProperties.replace(versionMatch, "gradle-$latestGradle-bin.zip")
                         projectRoot.gradleWrapperProperties.writeText(newProperties)
@@ -41,16 +43,19 @@ class GradleWrapper : GradleRootModule() {
                     return listOf(todo)
                 }
             } else {
-                println("Unable to extract gradle version from ${properties.absolutePath}:\n$oldProperties")
+                logger.warn("Unable to extract gradle version from ${properties.absolutePath}:\n$oldProperties")
             }
         } else {
-            println("No Gradle wrapper descriptor available.")
+            logger.warn("No Gradle wrapper descriptor available.")
         }
         return emptyList()
     }
     companion object {
-        private val versionRegex = """\d+(\.\d+)*"""
+
         private val gson = Gson()
+        private val logger = LoggerFactory.getLogger(UpGradle.javaClass)
+        private const val versionRegex = """\d+(\.\d+)*"""
+
         val latestGradle: String by CachedFor(1.hours) {
             val response = URL("https://api.github.com/repos/gradle/gradle/releases").readText()
             val releases = gson.fromJson(response, List::class.java)
