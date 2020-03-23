@@ -23,7 +23,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
     companion object {
 
         private const val UNPROCESSABLE_ENTITY = 422
-        private val logger = LoggerFactory.getLogger(UpGradle.javaClass)
+        private val logger = LoggerFactory.getLogger(UpGradle::class.java)
 
         private fun upgradleFromArguments(args: Array<String>) = when (args.size) {
             0 -> UpGradle()
