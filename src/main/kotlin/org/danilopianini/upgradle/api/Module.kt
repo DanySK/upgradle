@@ -22,7 +22,7 @@ interface Module {
                 .getClassesImplementing(Module::class.java.canonicalName)
                 .filter { !it.isAbstract }
                 .loadClasses()
-                .map { it as Class<out Module> }
+                .filterIsInstance<Class<out Module>>()
         }
 
         val String.asUpGradleModule: Module get() =
@@ -37,7 +37,7 @@ interface Module {
                     subclasses.find { equals(name.invoke(it), ignoreCase = withCase) }
                 }.fix()
                 .filterNotNull()
-                .first()?.getConstructor()?.newInstance()
+                .first().getConstructor()?.newInstance()
                 ?: throw IllegalStateException("No module available for $this")
     }
 }

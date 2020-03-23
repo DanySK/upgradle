@@ -53,7 +53,7 @@ class GradleWrapper : GradleRootModule() {
     companion object {
 
         private val gson = Gson()
-        private val logger = LoggerFactory.getLogger(UpGradle.javaClass)
+        private val logger = LoggerFactory.getLogger(UpGradle::class.java)
         private const val versionRegex = """\d+(\.\d+)*"""
 
         val latestGradle: String by CachedFor(1.hours) {
