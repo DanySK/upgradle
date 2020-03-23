@@ -57,7 +57,7 @@ data class RepoDescriptor(
 
 data class Configuration(
     val includes: List<RepoDescriptor>,
-    val excludes: List<RepoDescriptor>,
+    val excludes: List<RepoDescriptor>?,
     val modules: List<String>
 ) {
 
@@ -72,11 +72,11 @@ data class Configuration(
                     .map { SelectedRemoteBranch(remote, it) }
             }
             .filter { (remote, branch) ->
-                excludes.none { exclusion ->
+                excludes?.none { exclusion ->
                     exclusion.ownersRegex.any { it.matches(remote.owner.login) } &&
                         exclusion.reposRegex.any { it.matches(remote.name) } &&
                         exclusion.branchesRegex.any { it.matches(branch.name) }
-                }
+                } ?: true
             }
             .collect(Collectors.toSet())
 }

@@ -37,6 +37,9 @@ dependencies {
     implementation("io.github.classgraph:classgraph:4.8.65")
     implementation("io.arrow-kt:arrow-core:0.10.4")
     implementation(kotlin("stdlib-jdk8"))
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:+")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:+")
+    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
 }
 
 val compileKotlin: KotlinCompile by tasks
@@ -54,6 +57,10 @@ publishOnCentral {
     projectLongName.set("UpGradle")
     licenseName.set("GPL")
     licenseUrl.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 detekt {

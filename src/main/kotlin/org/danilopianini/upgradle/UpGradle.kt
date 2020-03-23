@@ -5,6 +5,7 @@ import com.uchuhimo.konf.source.toml
 import com.uchuhimo.konf.source.yaml
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
 import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
@@ -61,59 +62,64 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val upgradle: UpGradle = upgradleFromArguments(args)
             val credentials = Credentials.loadGitHubCredentials()
             val repositoryService = RepositoryService().authenticated(credentials)
-            upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { (repository, branch) ->
-                upgradle.configuration.modules.map { it.asUpGradleModule }.parallelStream().forEach { module ->
-                    val user = repository.owner.login
-                    logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
-                    val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
-                    val destination = createTempDir(workdirPrefix)
-                    val git = repository.clone(branch, destination, credentials)
-                    val branches = git.branchList().call().map { it.name }
-                    logger.info("Available branches: $branches")
-                    module.operationsFor(destination)
-                        .asSequence()
-                        .filterNot { it.branch in branches }
-                        .forEach { update ->
-                            GlobalScope.launch {
-                                // Checkout a clean starting branch
-                                git.checkout().setName(branch.name)
-                                git.reset().setMode(ResetCommand.ResetType.HARD).call()
-                                // Start a new working branch
-                                git.checkout().setCreateBranch(true).setName(update.branch).call()
-                                // Run the update operation
-                                val changes = update()
-                                val dirCache = git.add(destination, changes)
-                                if (dirCache.entryCount > 0) {
-                                    // Commit changes
-                                    git.commit(update.commitMessage)
-                                    // Push the new branch
-                                    val pushResults = git.pushTo(update.branch, credentials)
-                                    // If push ok, create a pull request
-                                    if (pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
-                                        try {
-                                            repository.createPullRequest(
-                                                    update,
-                                                    head = update.branch,
-                                                    base = branch.name,
-                                                    credentials = credentials
-                                            )
-                                        } catch (requestException: RequestException) {
-                                            when (requestException.status) {
-                                                UNPROCESSABLE_ENTITY -> println(requestException.message)
-                                                else -> throw requestException
+            runBlocking {
+                upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { (repository, branch) ->
+                    upgradle.configuration.modules.map { it.asUpGradleModule }.forEach { module ->
+                        launch {
+                            val user = repository.owner.login
+                            logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
+                            val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
+                            val destination = createTempDir(workdirPrefix)
+                            val git = repository.clone(branch, destination, credentials)
+                            val branches = git.branchList().call().map { it.name }
+                            logger.info("Available branches: $branches")
+                            module.operationsFor(destination)
+                                    .asSequence()
+                                    .filterNot { it.branch in branches }
+                                    .forEach { update ->
+                                        // Checkout a clean starting branch
+                                        logger.info("checking out ${branch.name}")
+                                        git.checkout().setName(branch.name)
+                                        git.reset().setMode(ResetCommand.ResetType.HARD).call()
+                                        // Start a new working branch
+                                        git.checkout().setCreateBranch(true).setName(update.branch).call()
+                                        // Run the update operation
+                                        logger.info("Running update...")
+                                        val changes = update()
+                                        logger.info("Changes: {}", changes)
+                                        git.add(destination, changes)
+                                        // Commit changes
+                                        git.commit(update.commitMessage)
+                                        // Push the new branch
+                                        logger.info("Pushing ${update.branch}...")
+                                        val pushResults = git.pushTo(update.branch, credentials)
+                                        // If push ok, create a pull request
+                                        if (pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
+                                            logger.info("Push successful, creating a pull request")
+                                            try {
+                                                repository.createPullRequest(
+                                                        update,
+                                                        head = update.branch,
+                                                        base = branch.name,
+                                                        credentials = credentials
+                                                )
+                                                logger.info("PR Open from ${branch.name} towards ${update.branch}")
+                                            } catch (requestException: RequestException) {
+                                                when (requestException.status) {
+                                                    UNPROCESSABLE_ENTITY -> println(requestException.message)
+                                                    else -> throw requestException
+                                                }
                                             }
+                                        } else {
+                                            logger.error("Push failed.")
+                                            pushResults.map(Any::toString).forEach(logger::error)
                                         }
-                                    } else {
-                                        println("Push failed:")
-                                        pushResults.forEach(::println)
                                     }
-                                } else {
-                                    println("Job $update did not generate any change")
-                                }
-                            }
+                            destination.deleteRecursively()
+                        }
                     }
-                    destination.deleteRecursively()
                 }
+                logger.info("Done")
             }
         }
     }

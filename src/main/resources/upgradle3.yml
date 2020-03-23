@@ -1,0 +1,11 @@
+includes:
+  - owners: Alchemist.*
+    repos: Alchemist
+    branches:
+      - develop
+excludes:
+  owners: Protelis
+  repos: Protelis
+  branches: master
+modules:
+  - GradleWrapper

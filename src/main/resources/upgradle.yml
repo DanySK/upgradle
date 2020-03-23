@@ -1,11 +1,7 @@
 includes:
-  - owners: Alchemist.*
-    repos: Alchemist
+  - owners: DanySK
+    repos: maven-central-gradle-plugin
     branches:
-      - develop
-excludes:
-  owners: Protelis
-  repos: Protelis
-  branches: master
+      - master
 modules:
   - GradleWrapper
