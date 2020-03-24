@@ -73,7 +73,6 @@ class GradleWrapper : GradleRootModule() {
         }
 
         val gradleWrapperVersions get() = gradleVersions.map { it.downloadReference }
-
     }
 }
 
