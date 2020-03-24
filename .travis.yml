@@ -13,11 +13,27 @@ env:
     - JDK="adopt-openj9@1.8"
     - JDK="adopt@"
     - JDK="adopt-openj9"
+
+stages:
+  - base
+  - test
+  - deploy
+
+jobs:
+  exclude:
+    - stage: test
+      os: linux
+      env: JDK="adopt@1.8"
+  include:
+    - stage: base
+      os: linux
+      env: JDK="adopt@1.8"
+
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
   - source $GRAVIS/install-jdk
 install:
-  - ./gradlew clean build
+  - ./gradlew clean check
 before_cache:
   - $GRAVIS/clean-gradle-cache
 cache:
