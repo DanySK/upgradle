@@ -56,6 +56,13 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.jacocoTestReport {
+    reports {
+        xml.isEnabled = true
+    }
+}
+
+
 detekt {
     failFast = true
     buildUponDefaultConfig = true
