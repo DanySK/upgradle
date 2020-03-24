@@ -26,11 +26,6 @@ repositories {
             includeGroup("org.jetbrains.kotlinx")
         }
     }
-//    jcenter {
-//        content {
-//            includeGroup("org.jetbrains.kotlinx")
-//        }
-//    }
 }
 
 gitSemVer {
