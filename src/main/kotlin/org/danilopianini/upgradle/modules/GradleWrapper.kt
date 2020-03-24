@@ -30,7 +30,7 @@ class GradleWrapper : GradleRootModule() {
                 if (nextGradle.isEmpty()) {
                     logger.info("The Gradle wrapper looks up to date here ($localGradleVersion)")
                 } else {
-                    logger.info("Gradle can be updated to: ${nextGradle}")
+                    logger.info("Gradle can be updated to: {}", nextGradle)
                 }
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle"
@@ -110,5 +110,4 @@ data class GradleVersion(val major: Int, val minor: Int, val patch: Int?, val rc
     }
 
     private fun Int?.compareOrNull(other: Int?): Int? = compareWith(other).takeIf { it != 0 }
-
 }
