@@ -2,7 +2,6 @@ package org.danilopianini.upgradle.modules
 
 import com.google.gson.Gson
 import org.danilopianini.upgradle.CachedFor
-import org.danilopianini.upgradle.UpGradle
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
@@ -56,7 +55,7 @@ class GradleWrapper : GradleRootModule() {
     companion object {
 
         private val gson = Gson()
-        private val logger = LoggerFactory.getLogger(UpGradle::class.java)
+        private val logger = LoggerFactory.getLogger(GradleWrapper::class.java)
         private const val versionRegex = """\d+(\.\d+)*(-rc\d*)?"""
 
         val gradleVersions: List<GradleVersion> by CachedFor(1.hours) {

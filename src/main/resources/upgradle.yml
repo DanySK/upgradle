@@ -1,7 +1,7 @@
 includes:
   - owners: DanySK
-    repos: maven-central-gradle-plugin
+    repos: upgradle
     branches:
       - master
 modules:
-  - GradleWrapper
+  - RefreshVersions
