@@ -31,6 +31,7 @@ jobs:
     - stage: base
       os: linux
       env: *reference_jdk
+      after_success: bash <(curl -s https://codecov.io/bash)
 
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
