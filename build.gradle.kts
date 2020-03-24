@@ -8,12 +8,11 @@ buildscript {
 
 plugins {
     `maven-publish`
-    kotlin("jvm") version "1.3.70"
-    id("org.danilopianini.git-sensitive-semantic-versioning") version "0.2.2"
-    id("org.danilopianini.publish-on-central") version "0.2.3"
-    id("org.jetbrains.dokka") version "0.10.1"
-//    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
-    id("io.gitlab.arturbosch.detekt") version "1.7.0"
+    kotlin("jvm")
+    id("org.danilopianini.git-sensitive-semantic-versioning")
+    id("org.danilopianini.publish-on-central")
+    id("org.jetbrains.dokka")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 repositories {
@@ -30,16 +29,15 @@ gitSemVer {
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.7.0")
-    implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:2.1.5")
-//    implementation("org.eclipse.jgit:org.eclipse.jgit:+")
-    implementation("com.uchuhimo:konf:0.22.1")
-    implementation("io.github.classgraph:classgraph:4.8.65")
-    implementation("io.arrow-kt:arrow-core:0.10.4")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:_")
+    implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
+    implementation("com.uchuhimo:konf:_")
+    implementation("io.github.classgraph:classgraph:_")
+    implementation("io.arrow-kt:arrow-core:_")
     implementation(kotlin("stdlib-jdk8"))
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:+")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:+")
-    runtimeOnly("ch.qos.logback:logback-classic:1.2.3")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:_")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:_")
+    runtimeOnly("ch.qos.logback:logback-classic:_")
 }
 
 val compileKotlin: KotlinCompile by tasks
