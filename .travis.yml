@@ -1,15 +1,18 @@
+_reference_jdk: &reference_jdk
+  JDK="adopt@1.8"
+
 language: minimal
 os:
-  - linux
-  - windows
   - macos
+  - windows
+  - linux
 env:
   global:
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
     - GRAVIS="$HOME/gravis"
     - TERM="dumb"
   matrix:
-    - JDK="adopt@1.8"
+    - *reference_jdk
     - JDK="adopt-openj9@1.8"
     - JDK="adopt@"
     - JDK="adopt-openj9"
@@ -23,11 +26,11 @@ jobs:
   exclude:
     - stage: test
       os: linux
-      env: JDK="adopt@1.8"
+      env: *reference_jdk
   include:
     - stage: base
       os: linux
-      env: JDK="adopt@1.8"
+      env: *reference_jdk
 
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
