@@ -9,15 +9,28 @@ plugins {
     id("org.jetbrains.dokka")
     id("io.gitlab.arturbosch.detekt")
     id("com.github.johnrengelman.shadow")
+    id("com.github.breadmoirai.github-release")
 }
 
 repositories {
     mavenCentral()
-    jcenter {
+    maven {
+        url = uri("https://dl.bintray.com/kotlin/dokka")
+        content {
+            includeGroup("org.jetbrains.dokka")
+        }
+    }
+    maven {
+        url = uri("https://dl.bintray.com/kotlin/kotlinx.html/")
         content {
             includeGroup("org.jetbrains.kotlinx")
         }
     }
+//    jcenter {
+//        content {
+//            includeGroup("org.jetbrains.kotlinx")
+//        }
+//    }
 }
 
 gitSemVer {
@@ -77,5 +90,21 @@ detekt {
 tasks.withType<Jar> {
     manifest {
         attributes("Main-Class" to "org.danilopianini.upgradle.UpGradle")
+    }
+}
+
+val githubToken: String? by project
+val ghActualToken = githubToken ?: System.getenv("GITHUB_TOKEN")
+if (ghActualToken != null) {
+    githubRelease {
+        token(ghActualToken)
+        owner.set("DanySK")
+        prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
+        releaseAssets(*tasks.withType<Jar>().map {it.archiveFile}.toTypedArray())
+        body("""
+        ## CHANGELOG
+        ${changelog().call()}
+        """.trimIndent()
+        )
     }
 }

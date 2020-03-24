@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.system.exitProcess
 
-class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgradle.yml") }) {
+class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("examples/upgradle.yml") }) {
     val configuration = Configurator.load(configuration)
 
     companion object {

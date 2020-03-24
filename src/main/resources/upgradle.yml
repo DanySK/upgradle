@@ -1,7 +1,0 @@
-includes:
-  - owners: DanySK
-    repos: upgradle
-    branches:
-      - master
-modules:
-  - RefreshVersions
