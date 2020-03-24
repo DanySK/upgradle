@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     `maven-publish`
@@ -86,6 +87,12 @@ tasks.withType<Jar> {
     manifest {
         attributes("Main-Class" to "org.danilopianini.upgradle.UpGradle")
     }
+}
+
+tasks.withType<DokkaTask> {
+    // Workaround for https://github.com/Kotlin/dokka/issues/294
+    outputFormat = if(JavaVersion.current().isJava10Compatible) "html" else "javadoc"
+    outputDirectory = "$buildDir/javadoc"
 }
 
 val githubToken: String? by project
