@@ -66,3 +66,26 @@ excludes:
 modules:
   - GradleWrapper
 ```
+
+### Providing GitHub credentials
+
+Credentials must be provided as environment variables.
+UpGradle supports both user and password or token authentication.
+The latter is to be preferred;
+GitHub is planning to drop support for user/password authentication in future.
+
+Variables must be provided prefixed by `GITHUB_`, `GH_`, or `RELEASES_`;
+and followed by `TOKEN` for the token,
+`USERNAME` or `USER` for the username,
+or `PASSWORD` for the password.
+In case both token-based and user/password are provided, token access is preferred.
+
+A valid environment could be, for instance:
+
+* `GITHUB_TOKEN=1a2b3c4d5e6f7g8h9i0j`
+* `GITHUB_USERNAME=DanySK` and `GITHUB_PASSWORD=secret`
+* `GH_TOKEN=1a2b3c4d5e6f7g8h9i0j`
+* `RELEASES_USERNAME=DanySK` and `RELEASES_PASSWORD=secret`
+
+Token should have `public_repo` access if you only plan to use UpGradle for open source,
+or `repo` access if you intend to use it also on private repositories.
