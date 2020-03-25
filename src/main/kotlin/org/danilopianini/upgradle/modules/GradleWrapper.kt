@@ -4,6 +4,7 @@ import org.danilopianini.upgradle.CachedFor
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
+import org.danilopianini.upgradle.modules.GradleVersion.Companion.asGradleVersion
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
@@ -20,11 +21,10 @@ class GradleWrapper : GradleRootModule() {
         if (properties.exists() && properties.isFile) {
             val oldProperties = properties.readText()
             val versionMatch = Regex("gradle-${GradleVersion.distVersionRegex}.*.zip")
-            val localGradleVersionMatch = versionMatch.find(oldProperties)?.groupValues
-            if (localGradleVersionMatch != null && localGradleVersionMatch.size >= 2) {
-                val localGradleVersion = localGradleVersionMatch[1]
+            val localGradleVersion = versionMatch.find(oldProperties)?.asGradleVersion
+            if (localGradleVersion != null) {
                 logger.info("Detected Gradle $localGradleVersion")
-                val nextGradle = gradleWrapperVersions.takeLastWhile { !localGradleVersion.startsWith(it) }
+                val nextGradle = gradleVersions.filter { it > localGradleVersion }
                 if (nextGradle.isEmpty()) {
                     logger.info("The Gradle wrapper looks up to date here ($localGradleVersion)")
                 } else {
@@ -67,8 +67,6 @@ class GradleWrapper : GradleRootModule() {
                 .sorted()
                 .toList()
         }
-
-        val gradleWrapperVersions get() = gradleVersions.map { it.downloadReference }
     }
 }
 
@@ -112,10 +110,11 @@ data class GradleVersion(
 
         fun fromGradleDistribution(version: String): GradleVersion? = distVersionRegex.extract(version)
 
-        private fun Regex.extract(descriptor: String) = find(descriptor)?.let {
-            val (major, minor, _, patch, _, rc) = it.destructured
+        val MatchResult.asGradleVersion: GradleVersion? get() = destructured.let { (major, minor, _, patch, _, rc) ->
             GradleVersion(major, minor, patch, rc)
         }
+
+        private fun Regex.extract(descriptor: String) = find(descriptor)?.asGradleVersion
 
         private fun Int?.compareWith(other: Int?): Int = when {
             this == null && other == null -> 0
