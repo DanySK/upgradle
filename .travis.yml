@@ -36,7 +36,7 @@ jobs:
       after_success: bash <(curl -s https://codecov.io/bash)
     - <<: *reference_build
       stage: deploy
-      script: ./gradlew shadow dokka
+      script: ./gradlew shadow dokka githubRelease publish
 
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
