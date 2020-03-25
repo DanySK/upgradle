@@ -1,4 +1,5 @@
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldNotBe
@@ -11,5 +12,6 @@ import kotlin.time.ExperimentalTime
 class TestGradleWrapper : StringSpec({
     "Gradle versions should be accessible" {
         GradleWrapper.gradleVersions shouldNotBe emptyList<GradleVersion>()
+        GradleWrapper.gradleVersions shouldContain GradleVersion(6, 0)
     }
 })

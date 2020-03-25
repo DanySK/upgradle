@@ -14,5 +14,4 @@ class TestGradleVersion : StringSpec({
         version("5.99")!! shouldBeLessThan version(rcversion)!!
         println(version("6.0.1")?.compareTo(version(rcversion)!!))
     }
-
 })

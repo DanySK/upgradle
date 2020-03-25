@@ -20,7 +20,7 @@ class GradleWrapper : GradleRootModule() {
         val properties = projectRoot.gradleWrapperProperties
         if (properties.exists() && properties.isFile) {
             val oldProperties = properties.readText()
-            val versionMatch = Regex("gradle-($versionRegex).*.zip")
+            val versionMatch = Regex("gradle-${GradleVersion.distVersionRegex}.*.zip")
             val localGradleVersionMatch = versionMatch.find(oldProperties)?.groupValues
             if (localGradleVersionMatch != null && localGradleVersionMatch.size >= 2) {
                 val localGradleVersion = localGradleVersionMatch[1]
@@ -54,20 +54,17 @@ class GradleWrapper : GradleRootModule() {
     }
     companion object {
 
-        private val gson = Gson()
         private val logger = LoggerFactory.getLogger(GradleWrapper::class.java)
-        private const val versionRegex = """\d+(\.\d+)*(-rc-\d*)?"""
+        private val versionExtractor = Regex("""gradle-${GradleVersion.distVersionRegex}-bin\.zip""")
 
         val gradleVersions: List<GradleVersion> by CachedFor(1.hours) {
-            val response = URL("https://api.github.com/repos/gradle/gradle/releases")
-                .readText()
-            val releases = gson.fromJson(response, List::class.java)
-            releases.asSequence()
-                .filterIsInstance<Map<String, String>>()
-                .map { it["name"] }
-                .filterNotNull()
-                .map(GradleVersion.Companion::fromGithubRelease)
-                .filterNotNull()
+            val response = URL("https://services.gradle.org/distributions/").readText()
+            versionExtractor.findAll(response)
+                .map {
+                    val (major, minor, _, patch, _, rc) = it.destructured
+                    GradleVersion(major, minor, patch, rc)
+                }
+                .distinct()
                 .sorted()
                 .toList()
         }
@@ -76,20 +73,23 @@ class GradleWrapper : GradleRootModule() {
     }
 }
 
-data class GradleVersion(val major: Int, val minor: Int, val patch: Int?, val rc: Int?) : Comparable<GradleVersion> {
+data class GradleVersion(
+    val major: Int,
+    val minor: Int,
+    val patch: Int? = null,
+    val rc: Int? = null
+) : Comparable<GradleVersion> {
+
+    constructor (
+        major: String,
+        minor: String,
+        patch: String? = null,
+        rc: String? = null
+    ) : this (major.toInt(), minor.toInt(), patch?.toIntOrNull(), rc?.toIntOrNull())
 
     val downloadReference: String = "$major.$minor${
             patch?.let { ".$it" } ?: ""
         }${ rc?.let { "-rc-$it" } ?: "" }"
-
-    companion object {
-        private val regex = Regex("""(\d+)\.(\d+)(\.(\d+))?( RC(\d+))?""")
-
-        fun fromGithubRelease(tagName: String): GradleVersion? = regex.find(tagName)?.let {
-                val (major, minor, _, patch, _, rc) = it.destructured
-                GradleVersion(major.toInt(), minor.toInt(), patch.toIntOrNull(), rc.toIntOrNull())
-            }
-    }
 
     override fun compareTo(other: GradleVersion) =
         major.compareOrNull(other.major)
@@ -102,12 +102,29 @@ data class GradleVersion(val major: Int, val minor: Int, val patch: Int?, val rc
                 else -> rc.compareTo(other.rc)
             }
 
-    private fun Int?.compareWith(other: Int?): Int = when {
-        this == null && other == null -> 0
-        this == null -> -1
-        other == null -> 1
-        else -> compareTo(other)
-    }
+    override fun toString() = downloadReference
 
-    private fun Int?.compareOrNull(other: Int?): Int? = compareWith(other).takeIf { it != 0 }
+    companion object {
+
+        val distVersionRegex = Regex("""(\d+)\.(\d+)(\.(\d+))?(-rc-(\d*))?""")
+        val ghRegex = Regex("""(\d+)\.(\d+)(\.(\d+))?( RC(\d+))?""")
+
+        fun fromGithubRelease(tagName: String): GradleVersion? = ghRegex.extract(tagName)
+
+        fun fromGradleDistribution(version: String): GradleVersion? = distVersionRegex.extract(version)
+
+        private fun Regex.extract(descriptor: String) = find(descriptor)?.let {
+            val (major, minor, _, patch, _, rc) = it.destructured
+            GradleVersion(major, minor, patch, rc)
+        }
+
+        private fun Int?.compareWith(other: Int?): Int = when {
+            this == null && other == null -> 0
+            this == null -> -1
+            other == null -> 1
+            else -> compareTo(other)
+        }
+
+        private fun Int?.compareOrNull(other: Int?): Int? = compareWith(other).takeIf { it != 0 }
+    }
 }
