@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.danilopianini.gradle.mavencentral.JavadocJar
+import com.github.breadmoirai.githubreleaseplugin.GithubReleaseTask
+import org.danilopianini.gradle.mavencentral.SourcesJar
 
 plugins {
     `maven-publish`
@@ -101,16 +103,18 @@ tasks.withType<DokkaTask> {
 
 val githubToken: String? by project
 val ghActualToken = githubToken ?: System.getenv("GITHUB_TOKEN")
+val jarTasks = tasks.withType<Jar>() + tasks.withType<JavadocJar>() + tasks.withType<SourcesJar>()
+tasks.withType<GithubReleaseTask> {
+    dependsOn(jarTasks)
+}
 if (ghActualToken != null) {
     githubRelease {
         token(ghActualToken)
         owner.set("DanySK")
         prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
-        releaseAssets(*tasks.withType<Jar>().map {it.archiveFile}.toTypedArray())
-        body("""
-        ## CHANGELOG
-        ${changelog().call()}
-        """.trimIndent()
-        )
+        releaseAssets(*jarTasks.map {it.archiveFile}.toTypedArray())
+        body("## CHANGELOG\n${changelog().call()}")
+        println(body)
+        allowUploadToExisting { true }
     }
 }
