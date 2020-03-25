@@ -26,7 +26,8 @@ env:
 stages:
   - base
   - test
-  - deploy
+  - name: deploy
+    if: repo = DanySK/upgradle
 
 jobs:
   exclude:
