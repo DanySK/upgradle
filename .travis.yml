@@ -36,6 +36,8 @@ jobs:
     - <<: *reference_build
       stage: base
       after_success: bash <(curl -s https://codecov.io/bash)
+      script:
+        - travis_retry ./gradlew clean check jacocoTestReport
     - <<: *reference_build
       stage: deploy
       script: travis_retry ./gradlew shadow dokka githubRelease publish
@@ -44,7 +46,7 @@ before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
   - source $GRAVIS/install-jdk
 script:
-  - travis_retry ./gradlew clean check jacocoTestReport
+  - travis_retry ./gradlew clean check
 before_cache:
   - $GRAVIS/clean-gradle-cache
 cache:
