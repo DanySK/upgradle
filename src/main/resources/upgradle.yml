@@ -1,0 +1,8 @@
+includes:
+  - owners: .*
+    repos: .*
+    branches:
+      - master
+modules:
+  - GradleWrapper
+  - RefreshVersions
