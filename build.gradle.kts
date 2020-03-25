@@ -1,8 +1,8 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.dokka.gradle.DokkaTask
-import org.danilopianini.gradle.mavencentral.JavadocJar
 import com.github.breadmoirai.githubreleaseplugin.GithubReleaseTask
+import org.danilopianini.gradle.mavencentral.JavadocJar
 import org.danilopianini.gradle.mavencentral.SourcesJar
+import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `maven-publish`
@@ -113,8 +113,7 @@ if (ghActualToken != null) {
         owner.set("DanySK")
         prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
         releaseAssets(*jarTasks.map {it.archiveFile}.toTypedArray())
-        body("## CHANGELOG\n${changelog().call()}")
-        println(body)
+        body("## CHANGELOG\n${ changelog().call() }")
         allowUploadToExisting { true }
     }
 }
