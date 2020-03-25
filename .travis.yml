@@ -27,7 +27,7 @@ stages:
   - base
   - test
   - name: deploy
-    if: repo = DanySK/upgradle
+    if: type != pull_request AND repo = DanySK/upgradle
 
 jobs:
   exclude:
