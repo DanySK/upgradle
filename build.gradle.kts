@@ -59,12 +59,6 @@ compileTestKotlin.kotlinOptions {
 }
 
 group = "org.danilopianini" // This must be configured for the generated pom.xml to work correctly
-publishOnCentral {
-    projectDescription.set("A bot meant to pack updates and send pull requests. Much like dependabot, but way more homemade and focused on Gradle.")
-    projectLongName.set("UpGradle")
-    licenseName.set("GPL")
-    licenseUrl.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
-}
 
 tasks.test {
     useJUnitPlatform()
@@ -116,5 +110,28 @@ if (ghActualToken != null) {
         releaseAssets(*jarTasks.map {it.archiveFile}.toTypedArray())
         body("## CHANGELOG\n${ changelog().call() }")
         allowUploadToExisting { true }
+    }
+}
+
+publishOnCentral {
+    projectDescription.set("A bot meant to pack updates and send pull requests. Much like dependabot, but way more homemade and focused on Gradle.")
+    projectLongName.set("UpGradle")
+    licenseName.set("GPL")
+    licenseUrl.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+}
+
+publishing {
+    publications {
+        withType<MavenPublication>() {
+            pom {
+                developers {
+                    developer {
+                        name.set("Danilo Pianini")
+                        email.set("danilo.pianini@gmail.com")
+                        url.set("http://www.danilopianini.org/")
+                    }
+                }
+            }
+        }
     }
 }
