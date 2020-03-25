@@ -56,10 +56,11 @@ class GradleWrapper : GradleRootModule() {
 
         private val gson = Gson()
         private val logger = LoggerFactory.getLogger(GradleWrapper::class.java)
-        private const val versionRegex = """\d+(\.\d+)*(-rc\d*)?"""
+        private const val versionRegex = """\d+(\.\d+)*(-rc-\d*)?"""
 
         val gradleVersions: List<GradleVersion> by CachedFor(1.hours) {
-            val response = URL("https://api.github.com/repos/gradle/gradle/releases").readText()
+            val response = URL("https://api.github.com/repos/gradle/gradle/releases")
+                .readText()
             val releases = gson.fromJson(response, List::class.java)
             releases.asSequence()
                 .filterIsInstance<Map<String, String>>()
