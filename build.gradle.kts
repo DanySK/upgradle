@@ -113,6 +113,12 @@ if (ghActualToken != null) {
     }
 }
 
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+}
+
 publishOnCentral {
     projectDescription.set("A bot meant to pack updates and send pull requests. Much like dependabot, but way more homemade and focused on Gradle.")
     projectLongName.set("UpGradle")
