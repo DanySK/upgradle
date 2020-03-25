@@ -41,7 +41,7 @@ jobs:
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
   - source $GRAVIS/install-jdk
-install:
+script:
   - ./gradlew clean check jacocoTestReport
 before_cache:
   - $GRAVIS/clean-gradle-cache
