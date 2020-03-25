@@ -1,6 +1,5 @@
 package org.danilopianini.upgradle.modules
 
-import com.google.gson.Gson
 import org.danilopianini.upgradle.CachedFor
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
