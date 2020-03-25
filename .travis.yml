@@ -7,6 +7,8 @@ _reference_build: &reference_build
   os: linux
   env: *reference_jdk
 
+git:
+  depth: false
 language: minimal
 os:
   - macos
