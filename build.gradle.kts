@@ -3,6 +3,7 @@ import org.danilopianini.gradle.mavencentral.JavadocJar
 import org.danilopianini.gradle.mavencentral.SourcesJar
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     id("org.danilopianini.git-sensitive-semantic-versioning")
@@ -62,6 +63,10 @@ group = "org.danilopianini" // This must be configured for the generated pom.xml
 
 tasks.test {
     useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = TestExceptionFormat.FULL
+    }
 }
 
 tasks.jacocoTestReport {
