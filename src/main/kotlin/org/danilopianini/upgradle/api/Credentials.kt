@@ -8,7 +8,7 @@ import java.lang.IllegalStateException
 sealed class Credentials {
     companion object {
         fun loadGitHubCredentials(): Credentials {
-            val validPrefixes = listOf("GITHUB_", "GH_", "RELEASES")
+            val validPrefixes = listOf("GITHUB_", "GH_", "RELEASES_")
             val suffixes = listOf("TOKEN", "USERNAME", "USER", "PASSWORD")
             val credentials: List<Credentials> = validPrefixes
                 .flatMap { prefix -> suffixes.map { prefix + it } }
