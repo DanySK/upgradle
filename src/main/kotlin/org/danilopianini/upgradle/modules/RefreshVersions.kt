@@ -52,7 +52,7 @@ class RefreshVersions : GradleRootModule() {
             logger.info("Found update for {}: {} -> {}", artifact, old, new)
             val message = "Upgrade $artifact from $old to $new"
             SimpleOperation(
-                    branch = "upgradle-bump-$artifact-to-$new",
+                    branch = "bump-$artifact-to-$new",
                     commitMessage = message,
                     pullRequestTitle = message,
                     pullRequestMessage = "This update was prepared for you by UpGradle, at your service."
