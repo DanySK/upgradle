@@ -36,13 +36,13 @@ jobs:
       after_success: bash <(curl -s https://codecov.io/bash)
     - <<: *reference_build
       stage: deploy
-      script: ./gradlew shadow dokka githubRelease publish
+      script: travis_retry ./gradlew shadow dokka githubRelease publish
 
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
   - source $GRAVIS/install-jdk
 script:
-  - ./gradlew clean check jacocoTestReport
+  - travis_retry ./gradlew clean check jacocoTestReport
 before_cache:
   - $GRAVIS/clean-gradle-cache
 cache:
