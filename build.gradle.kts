@@ -5,13 +5,14 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    `maven-publish`
-    jacoco
-    kotlin("jvm")
     id("org.danilopianini.git-sensitive-semantic-versioning")
-    id("org.danilopianini.publish-on-central")
-    id("org.jetbrains.dokka")
+    kotlin("jvm")
     id("io.gitlab.arturbosch.detekt")
+    jacoco
+    `maven-publish`
+    signing
+    id("org.jetbrains.dokka")
+    id("org.danilopianini.publish-on-central")
     id("com.github.johnrengelman.shadow")
     id("com.github.breadmoirai.github-release")
 }

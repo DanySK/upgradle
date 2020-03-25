@@ -40,6 +40,7 @@ jobs:
         - travis_retry ./gradlew clean check jacocoTestReport
     - <<: *reference_build
       stage: deploy
+      install: openssl aes-256-cbc -K $encrypted_f778b2e1574b_key -iv $encrypted_f778b2e1574b_iv -in secrets.asc.enc -out secrets.asc -d
       script: travis_retry ./gradlew shadow dokka githubRelease publish
 
 before_install:
