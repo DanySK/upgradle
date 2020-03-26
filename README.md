@@ -49,7 +49,36 @@
 A bot for one-shot maintenance of multiple GitHub projects,
 focused on Gradle.
 
-## Use
+
+## Idea
+
+UpGradle checks for updates to your project, applies the update, and opens a pull request for you.
+If you got a CI in place, then the update is tested, and your maintenance time drops down, as you need only to approve
+things when they work as expected, or fix an issue that would be going to hit.
+
+
+### Concepts
+
+UpGradle is structured around a very simple model.
+You provide a way to identify yourself on GitHub,
+it fetches which repositories you got access,
+then filters those you want to upgrade,
+clones them, checks out the appropriate branch in a temporary folder,
+runs all the configured `Module`s (more words shortly),
+then pushes a new branch with the change and prepares a pull request.
+
+A `Module` is a small piece of software that, starting from a clean checked out branch,
+can identify a list of possible update `Operation`s to apply, and how to apply them.
+
+
+## Configuration
+
+This program expects a configuration in form of a YAML, JSON, or TOML file.
+In the remainder, the former will be used.
+
+The structure is quite simple, and expects three keys:
+
+* `includes`: which repositories should be considered 
 
 This project is very much in beta, details will come soon.
 
