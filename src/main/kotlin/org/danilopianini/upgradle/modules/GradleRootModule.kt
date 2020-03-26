@@ -11,13 +11,13 @@ abstract class GradleRootModule : Module {
             ?.any { it.isFile && (it.name == "build.gradle" || it.name == "build.gradle.kts") }
             ?: false
 
-    final override fun operationsFor(localDirectory: File): List<Operation> =
+    final override fun invoke(localDirectory: File): List<Operation> =
         if (localDirectory.isGradleProject) {
             operationsInProjectRoot(localDirectory)
         } else {
             localDirectory.listFiles()
                 ?.filter { it.isDirectory }
-                ?.flatMap { operationsFor(it) }
+                ?.flatMap { invoke(it) }
                 ?: emptyList()
         }
 

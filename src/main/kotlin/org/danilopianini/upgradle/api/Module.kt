@@ -7,11 +7,9 @@ import arrow.core.k
 import io.github.classgraph.ClassGraph
 import java.io.File
 
-interface Module {
+interface Module: (File)->List<Operation> {
     val name: String
         get() = javaClass.simpleName
-
-    fun operationsFor(localDirectory: File): List<Operation>
 
     object StringExtensions {
         val subclasses by lazy {

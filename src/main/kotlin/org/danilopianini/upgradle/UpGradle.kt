@@ -80,7 +80,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
             val git = repository.clone(branch, destination, credentials)
             val branches = git.branchList().call().map { it.name }
             logger.info("Available branches: $branches")
-            module.operationsFor(destination)
+            module(destination)
                 .asSequence()
                 .filterNot { it.branch in branches }
                 .forEach { update ->
