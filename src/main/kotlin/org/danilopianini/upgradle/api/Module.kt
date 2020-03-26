@@ -7,7 +7,7 @@ import arrow.core.k
 import io.github.classgraph.ClassGraph
 import java.io.File
 
-interface Module: (File)->List<Operation> {
+interface Module : (File) -> List<Operation> {
     val name: String
         get() = javaClass.simpleName
 
