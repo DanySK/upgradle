@@ -78,9 +78,22 @@ In the remainder, the former will be used.
 
 The structure is quite simple, and expects three keys:
 
-* `includes`: which repositories should be considered 
+* `includes`: which repositories should be considered
+* (optional) `excludes`: matching repositories will not be considered. The selection is operated over those selected by `includes`
+* `modules`: the list of modules to execute
 
-This project is very much in beta, details will come soon.
+`includes` and `excludes` share the same syntax.
+There can be a single or multiple descriptors,
+each one  with the following information:
+
+* `owners`: . matching users' repositories will be considered
+* `repos`: matching repository names will be considered
+* `branches`: matching repository names will be considered
+
+Every key can be a string or a list of strings,
+that will get interpreted as regular expressions.
+
+The following is a configuration example:
 
 ```yaml
 includes:
@@ -95,6 +108,12 @@ excludes:
 modules:
   - GradleWrapper
 ```
+
+### Default configuration
+
+<script src="https://raw.githubusercontent.com/DanySK/upgradle/master/src/main/resources/upgradle.yml"></script>
+
+### Working example
 
 ### Providing GitHub credentials
 
@@ -118,3 +137,5 @@ A valid environment could be, for instance:
 
 Token should have `public_repo` access if you only plan to use UpGradle for open source,
 or `repo` access if you intend to use it also on private repositories.
+
+## Developing a new module
