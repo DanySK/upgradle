@@ -70,6 +70,13 @@ then pushes a new branch with the change and prepares a pull request.
 A `Module` is a small piece of software that, starting from a clean checked out branch,
 can identify a list of possible update `Operation`s to apply, and how to apply them.
 
+### Use
+
+0. Download [the latest version of the tool](https://github.com/DanySK/upgradle/releases/latest), select the `upgradle-<version>-all.jar` artifact
+0. You need Java 8 or later installed on your system
+0. Generate a GitHub access token
+0. Run `GITHUB_TOKEN=<token> java -jar upgradle-<version>-all.jar path_to_configuration_file`.
+*Note*: if `path_to_configuration_file` is omitted, the default configuration will be used
 
 ## Configuration
 
@@ -93,27 +100,18 @@ each one  with the following information:
 Every key can be a string or a list of strings,
 that will get interpreted as regular expressions.
 
-The following is a configuration example:
+### Working example
 
-```yaml
-includes:
-  - owners: DanySK
-    repos: travis.*
-    branches:
-      - master
-excludes:
-  owners: Protelis
-  repos: Protelis
-  branches: master
-modules:
-  - GradleWrapper
-```
+A working example is provided in [this repository](https://github.com/DanySK/upgradle-bot),
+which relies on a Travis CI instance to perform the work.
 
 ### Default configuration
 
-<script src="https://raw.githubusercontent.com/DanySK/upgradle/master/src/main/resources/upgradle.yml"></script>
+[The default configuration](https://github.com/DanySK/upgradle/blob/master/src/main/resources/upgradle.yml)
+is aggressive and will run UpGradle on all the repositories you have write access to,
+running all the shipped modules.
 
-### Working example
+You probably don't want it
 
 ### Providing GitHub credentials
 
@@ -139,3 +137,16 @@ Token should have `public_repo` access if you only plan to use UpGradle for open
 or `repo` access if you intend to use it also on private repositories.
 
 ## Developing a new module
+
+Simply implement the `org.danilopianini.upgradle.Module` interface,
+which is little more than a function `(File)->List<Operation>`
+from the folder where the project is checked out
+to the list of `Operation`s that should get performed.
+
+A `SimpleOperation` class is provided that can get built by passing
+a name for the destination branch, a commit message, a title and a body for the pull request,
+and a function `() -> List<Change>` actually performing the job.
+
+A `Change` simply defines what gets changed, can be either a single file (`OnFile`)
+or a path to a file (`Pattern`).
+
