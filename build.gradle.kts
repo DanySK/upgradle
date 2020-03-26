@@ -6,13 +6,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
-    id("org.danilopianini.git-sensitive-semantic-versioning")
-    kotlin("jvm")
-    id("io.gitlab.arturbosch.detekt")
     jacoco
+    kotlin("jvm")
     `maven-publish`
     signing
+    id("io.gitlab.arturbosch.detekt")
+    id("org.danilopianini.git-sensitive-semantic-versioning")
     id("org.jetbrains.dokka")
+    id("org.jlleitschuh.gradle.ktlint")
     id("org.danilopianini.publish-on-central")
     id("com.github.johnrengelman.shadow")
     id("com.github.breadmoirai.github-release")
@@ -94,7 +95,7 @@ tasks.withType<Jar> {
 
 tasks.withType<DokkaTask> {
     // Workaround for https://github.com/Kotlin/dokka/issues/294
-    outputFormat = if(JavaVersion.current().isJava10Compatible) "html" else "javadoc"
+    outputFormat = if (JavaVersion.current().isJava10Compatible) "html" else "javadoc"
     outputDirectory = "$buildDir/javadoc"
     tasks.withType<JavadocJar> {
         from(outputDirectory)
@@ -112,7 +113,7 @@ if (ghActualToken != null) {
         token(ghActualToken)
         owner.set("DanySK")
         prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
-        releaseAssets(*jarTasks.map {it.archiveFile}.toTypedArray())
+        releaseAssets(*jarTasks.map { it.archiveFile }.toTypedArray())
         body("## CHANGELOG\n${ changelog().call() }")
         allowUploadToExisting { true }
     }
