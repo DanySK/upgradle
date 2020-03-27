@@ -46,7 +46,11 @@ class RefreshVersions : GradleRootModule() {
                 dependency.startsWith(pluginPrefix) ->
                     dependency.substring(pluginPrefix.length)
                 dependency.startsWith(versionPrefix) ->
-                    dependency.drop(dependency.lastIndexOf("..") + 2)
+                    if (dependency.contains("..")) {
+                        dependency.drop(dependency.lastIndexOf("..") + 2)
+                    } else {
+                        dependency.substring(versionPrefix.length)
+                    }
                 else -> dependency
             }
             logger.info("Found update for {}: {} -> {}", artifact, old, new)
