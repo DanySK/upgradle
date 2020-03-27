@@ -111,6 +111,7 @@ tasks.withType<GithubReleaseTask> {
 if (ghActualToken != null) {
     githubRelease {
         token(ghActualToken)
+        tagName(project.version.toString())
         owner.set("DanySK")
         prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
         releaseAssets(*jarTasks.map { it.archiveFile }.toTypedArray())
