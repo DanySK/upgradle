@@ -136,7 +136,19 @@ A valid environment could be, for instance:
 Token should have `public_repo` access if you only plan to use UpGradle for open source,
 or `repo` access if you intend to use it also on private repositories.
 
-## Developing a new module
+## Contributing to the project
+
+### Reporting issues
+
+Issues can be opened in the GitHub issue tracker of this project.
+
+### Proposing changes
+
+Pull requests are welcome.
+Continuous integration is in place for testing and checking code quality.
+Every new feature or module *must* come with adequate testing (even though I did not test my own modules as I should have had :( ).
+
+### Developing a new module
 
 Simply implement the `org.danilopianini.upgradle.Module` interface,
 which is little more than a function `(File)->List<Operation>`
