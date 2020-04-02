@@ -3,7 +3,7 @@
 ## Badges
 
 ### Info
-![Travis (.com)](https://img.shields.io/travis/com/DanySK/upgradle)
+[![Build Status](https://travis-ci.com/DanySK/upgradle.svg?branch=master)](https://travis-ci.com/DanySK/upgradle)
 ![GitHub](https://img.shields.io/github/license/DanySK/upgradle)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3803/badge)](https://bestpractices.coreinfrastructure.org/projects/3803)
 ![GitHub language count](https://img.shields.io/github/languages/count/DanySK/upgradle)
