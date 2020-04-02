@@ -46,7 +46,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
     implementation(kotlin("stdlib-jdk8"))
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:_")
+    testImplementation("io.kotest:kotest-runner-junit5:_")
     testImplementation("io.kotest:kotest-assertions-core-jvm:_")
     runtimeOnly("ch.qos.logback:logback-classic:_")
 }
