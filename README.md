@@ -1,10 +1,13 @@
 # UpGradle
 
+A bot for one-shot maintenance of multiple GitHub projects, focused on Gradle.
+
 ## Badges
 
 ### Info
 [![Build Status](https://travis-ci.com/DanySK/upgradle.svg?branch=master)](https://travis-ci.com/DanySK/upgradle)
 ![GitHub](https://img.shields.io/github/license/DanySK/upgradle)
+[![Javadocs](https://www.javadoc.io/badge/org.danilopianini/upgradle.svg)](https://www.javadoc.io/doc/org.danilopianini/upgradle)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3803/badge)](https://bestpractices.coreinfrastructure.org/projects/3803)
 ![GitHub language count](https://img.shields.io/github/languages/count/DanySK/upgradle)
 ![GitHub top language](https://img.shields.io/github/languages/top/DanySK/upgradle)
@@ -15,14 +18,11 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/DanySK/upgradle)
 
 ### Coverage
-![Codacy coverage](https://img.shields.io/codacy/coverage/75076bfcac4a4360851b2b55824280f0)
-![Code Climate coverage](https://img.shields.io/codeclimate/coverage/DanySK/upgradle)
-![Codecov](https://img.shields.io/codecov/c/github/DanySK/upgradle)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DanySK_upgradle&metric=coverage)](https://sonarcloud.io/dashboard?id=DanySK_upgradle)
 
 ### Quality
+[![ktlint](https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg)](https://ktlint.github.io/)
 ![Codacy grade](https://img.shields.io/codacy/grade/75076bfcac4a4360851b2b55824280f0)
-![Code Climate coverage](https://img.shields.io/codeclimate/coverage/DanySK/upgradle)
+![Codecov](https://img.shields.io/codecov/c/github/DanySK/upgradle)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/DanySK/upgradle)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/issues/DanySK/upgradle)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/tech-debt/DanySK/upgradle)
@@ -46,8 +46,6 @@
 ![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/DanySK/upgradle/latest/master)
 ![GitHub last commit](https://img.shields.io/github/last-commit/DanySK/upgradle)
 
-A bot for one-shot maintenance of multiple GitHub projects,
-focused on Gradle.
 
 
 ## Idea
