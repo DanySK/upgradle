@@ -9,6 +9,8 @@ _reference_build: &reference_build
 
 git:
   depth: false
+  autocrlf: input
+
 language: minimal
 os:
   - macos
