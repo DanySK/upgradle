@@ -16,7 +16,7 @@ class GradleWrapper : GradleRootModule() {
 
     private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
-    override fun operationsInProjectRoot(projectRoot: File): List<Operation> {
+    override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val properties = projectRoot.gradleWrapperProperties
         if (properties.exists() && properties.isFile) {
             val oldProperties = properties.readText()
@@ -31,12 +31,16 @@ class GradleWrapper : GradleRootModule() {
                     logger.info("Gradle can be updated to: {}", nextGradle)
                 }
                 return nextGradle.map { newerGradle ->
-                    val description = "Upgrade Gradle Wrapper to $newerGradle"
+                    val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
                     SimpleOperation(
-                            branch = "bump-gradle-wrapper-$localGradleVersion-to-$newerGradle",
+                            branch = "bump-gradle-wrapper-$localGradleVersion-to-$newerGradle${
+                                projectDescriptor(projectId)
+                            }",
                             commitMessage = description,
                             pullRequestTitle = description,
-                            pullRequestMessage = "Gradle wrapper $localGradleVersion -> $newerGradle."
+                            pullRequestMessage = "Gradle wrapper${
+                                inProject(projectId)
+                            } $localGradleVersion -> $newerGradle."
                     ) {
                         val newProperties = oldProperties.replace(versionMatch, "gradle-$newerGradle-bin.zip")
                         projectRoot.gradleWrapperProperties.writeText(newProperties)

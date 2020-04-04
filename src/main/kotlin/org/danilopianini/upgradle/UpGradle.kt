@@ -61,15 +61,22 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
             }
         }
 
-        fun prepareRepository(git: Git, branch: RepositoryBranch, update: Operation) {
-            // Checkout a clean starting branch
-            logger.info("Checking out ${branch.name}")
-            git.checkout().setName(branch.name).call()
-            logger.info("Resetting the repo status")
-            git.reset().setMode(ResetCommand.ResetType.HARD).call()
-            // Start a new working branch
-            git.checkout().setCreateBranch(true).setName(update.branch).call()
+        fun Boolean.then(block: () -> Unit): Boolean {
+            if (this) {
+                block()
+            }
+            return this
         }
+
+        fun prepareRepository(git: Git, branch: RepositoryBranch, update: Operation): Boolean =
+            git.branchList().call().none { it.name == branch.name }.then {
+                logger.info("Checking out ${branch.name}")
+                git.checkout().setName(branch.name).call()
+                logger.info("Resetting the repo status")
+                git.reset().setMode(ResetCommand.ResetType.HARD).call()
+                // Start a new working branch
+                git.checkout().setCreateBranch(true).setName(update.branch).call()
+            }
 
         fun runModule(repository: Repository, branch: RepositoryBranch, module: Module, credentials: Credentials) {
             val user = repository.owner.login

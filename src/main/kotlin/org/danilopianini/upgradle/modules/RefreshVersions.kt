@@ -9,7 +9,7 @@ import java.io.File
 
 class RefreshVersions : GradleRootModule() {
 
-    override fun operationsInProjectRoot(projectRoot: File): List<Operation> {
+    override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val filesInRoot = projectRoot.listFiles()?.filter { it.isFile } ?: emptyList()
         val versionsFile = filesInRoot.find { it.name == versionFileName }
         // Check for gradlew and gradlew.bat
@@ -22,7 +22,7 @@ class RefreshVersions : GradleRootModule() {
                         logger.error("Could not refresh versions, process ended with error ${refresh.code}.")
                         emptyList()
                     }
-                    is ProcessOutcome.Ok -> prepareUpdates(projectRoot, versionsFile)
+                    is ProcessOutcome.Ok -> prepareUpdates(projectRoot, projectId, versionsFile)
                 }
             } else {
                 logger.warn("No {} file available in {}", execFile, projectRoot.absolutePath)
@@ -33,7 +33,7 @@ class RefreshVersions : GradleRootModule() {
         return emptyList()
     }
 
-    fun prepareUpdates(projectRoot: File, versionsFile: File): List<Operation> {
+    private fun prepareUpdates(projectRoot: File, projectId: String, versionsFile: File): List<Operation> {
         logger.info("Version refresh successful. Extracting available updates")
         val versionsContent = versionsFile.readText()
         val matches = updateExtraction.findAll(versionsContent)
@@ -54,9 +54,9 @@ class RefreshVersions : GradleRootModule() {
                 else -> dependency
             }
             logger.info("Found update for {}: {} -> {}", artifact, old, new)
-            val message = "Upgrade $artifact from $old to $new"
+            val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
             SimpleOperation(
-                    branch = "bump-$artifact-to-$new",
+                    branch = "bump-$artifact-to-$new${projectDescriptor(projectId)}",
                     commitMessage = message,
                     pullRequestTitle = message,
                     pullRequestMessage = "This update was prepared for you by UpGradle, at your service."

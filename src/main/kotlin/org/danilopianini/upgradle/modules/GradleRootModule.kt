@@ -11,15 +11,22 @@ abstract class GradleRootModule : Module {
             ?.any { it.isFile && (it.name == "build.gradle" || it.name == "build.gradle.kts") }
             ?: false
 
-    final override fun invoke(localDirectory: File): List<Operation> =
-        if (localDirectory.isGradleProject) {
-            operationsInProjectRoot(localDirectory)
-        } else {
-            localDirectory.listFiles()
-                ?.filter { it.isDirectory }
-                ?.flatMap { invoke(it) }
-                ?: emptyList()
-        }
+    protected fun File.gradleRoots(): List<File> = listOf(this).takeIf { isGradleProject }
+            ?: listFiles()?.filter { it.isDirectory }?.flatMap { it.gradleRoots() }
+            ?: emptyList()
 
-    abstract fun operationsInProjectRoot(projectRoot: File): List<Operation>
+    final override fun invoke(localDirectory: File): List<Operation> = with(localDirectory.gradleRoots()) {
+        when {
+            size <= 1 -> flatMap { operationsInProjectRoot(it) }
+            else -> mapIndexed { index, file -> operationsInProjectRoot(file, "project-$index") }.flatten()
+        }
+    }
+
+    abstract fun operationsInProjectRoot(projectRoot: File, projectId: String = defaultProjectId): List<Operation>
+
+    companion object {
+        const val defaultProjectId = "root"
+        fun inProject(projectId: String) = if (projectId == defaultProjectId) "" else " in $projectId"
+        fun projectDescriptor(projectId: String) = inProject(projectId).replace(" ", "-")
+    }
 }
