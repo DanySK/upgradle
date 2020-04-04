@@ -31,7 +31,7 @@ stages:
   - base
   - test
   - name: deploy
-    if: type != pull_request AND repo = DanySK/upgradle AND branch = master
+    if: type != pull_request AND repo = DanySK/upgradle AND (branch = master OR tag ~= /^\d+(\.\d+)*$/)
 
 jobs:
   exclude:
