@@ -45,7 +45,10 @@ fun Git.pushTo(branch: String, credentials: Credentials): List<RemoteRefUpdate> 
     .setForce(false)
     .setRemote("origin")
     .setRefSpecs(RefSpec(branch))
-    .call()
+    .let { runCatching { it.call() }.getOrElse {
+        UpGradle.logger.warn("Push failed: is the project archived? {}", it)
+        emptyList()
+    } }
     .flatMap { it.remoteUpdates }
 
 fun Repository.createPullRequest(update: Operation, head: String, base: String, credentials: Credentials) =

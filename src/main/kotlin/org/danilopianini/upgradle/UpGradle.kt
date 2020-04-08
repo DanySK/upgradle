@@ -28,7 +28,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
     companion object {
 
         private const val UNPROCESSABLE_ENTITY = 422
-        private val logger = LoggerFactory.getLogger(UpGradle::class.java)
+        internal val logger = LoggerFactory.getLogger(UpGradle::class.java)
 
         private fun upgradleFromArguments(args: Array<String>) = when (args.size) {
             0 -> UpGradle()
@@ -134,11 +134,13 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
             val repositoryService = RepositoryService().authenticated(credentials)
             runBlocking {
                 upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { (repository, branch) ->
-                    upgradle.configuration.modules.map { it.asUpGradleModule }.forEach { module ->
-                        launch {
-                            runModule(repository, branch, module, credentials)
+                    upgradle.configuration.modules
+                        .map { it.asUpGradleModule }
+                        .forEach { module ->
+                            launch {
+                                runModule(repository, branch, module, credentials)
+                            }
                         }
-                    }
                 }
                 logger.info("Done")
             }
