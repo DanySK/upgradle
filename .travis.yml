@@ -49,7 +49,8 @@ jobs:
         - openssl aes-256-cbc -K $encrypted_f778b2e1574b_key -iv $encrypted_f778b2e1574b_iv -in secrets.asc.enc -out secrets.asc -d
         - export ORG_GRADLE_PROJECT_signingKey=$(cat secrets.asc)
         - rm secrets.asc
-      script: travis_retry ./gradlew shadow dokka githubRelease publish
+      script:
+        - travis_retry ./gradlew publish publishPlugins
 
 before_install:
   - travis_retry git clone --depth 1 $GRAVIS_REPO $GRAVIS
