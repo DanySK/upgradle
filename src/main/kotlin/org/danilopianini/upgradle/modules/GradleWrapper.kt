@@ -68,7 +68,7 @@ class GradleWrapper : GradleRootModule() {
                     GradleVersion(major, minor, patch, rc)
                 }
                 .distinct()
-                .sorted()
+                .sortedDescending()
                 .toList()
         }
     }
