@@ -103,7 +103,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
                     logger.info("Pushing ${update.branch}...")
                     val pushResults = git.pushTo(update.branch, credentials)
                     // If push ok, create a pull request
-                    if (pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
+                    if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
                         logger.info("Push successful, creating a pull request")
                         try {
                             repository.createPullRequest(
