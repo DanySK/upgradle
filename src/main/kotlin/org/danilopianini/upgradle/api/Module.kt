@@ -25,7 +25,7 @@ interface Module : (File) -> List<Operation> {
 
         val String.asUpGradleModule: Module get() =
             ListK.applicative()
-                .map(
+                .mapN(
                     // Cartesian product of:
                     // Methods for extracting possible names
                     listOf(Class<*>::getCanonicalName, Class<*>::getSimpleName).k(),
