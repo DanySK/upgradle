@@ -46,7 +46,7 @@ fun Git.pushTo(branch: String, credentials: Credentials): List<RemoteRefUpdate> 
     .setRemote("origin")
     .setRefSpecs(RefSpec(branch))
     .let { runCatching { it.call() }.getOrElse {
-        UpGradle.logger.warn("Push failed: is the project archived? {}", it)
+        UpGradle.logger.warn("Push failed: is the project archived?", it)
         emptyList()
     } }
     .flatMap { it.remoteUpdates }
