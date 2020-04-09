@@ -112,7 +112,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
                                     base = branch.name,
                                     credentials = credentials
                             )
-                            logger.info("Pull request opened from ${branch.name} towards ${update.branch}")
+                            logger.info("Pull request opened ${update.branch} -> ${branch.name}")
                         } catch (requestException: RequestException) {
                             when (requestException.status) {
                                 UNPROCESSABLE_ENTITY -> println(requestException.message)
