@@ -12,10 +12,12 @@ git:
   autocrlf: input
 
 language: minimal
+
 os:
   - macos
   - windows
   - linux
+
 env:
   global:
     - GRAVIS_REPO="https://github.com/DanySK/Gravis-CI.git"
