@@ -116,7 +116,7 @@ This is especially useful for further automated workflows,
 e.g. using [automerge](https://github.com/pascalgn/automerge-action).
 The content of `labels` is a single or multiple descriptor expecting:
 
-* `label`: a string with the name of the label
+* `name`: a string with the name of the label
 * *optional* `color` a color hexadecimal string, six characters long. If omitted, a random color will be generated.
 
 In case the desired label is not available in the repository for which the PR is being prepared,

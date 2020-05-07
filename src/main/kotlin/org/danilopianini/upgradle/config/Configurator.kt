@@ -57,22 +57,21 @@ data class RepoDescriptor(
     }
 }
 
-data class ColoredLabel(val label: String, val colorHex: String = randomColor()) : Label() {
+class ColoredLabel : Label() {
 
-    init {
-        require(colorHex.length == 6 && colorHex.toLongOrNull(16) != null) {
-            "Invalid color hexadecimal $colorHex. Value must be six chars long in the [0-f] range"
+    override fun getColor(): String {
+        if (super.getColor() == null) {
+            setColor(randomColor())
         }
-        super.setName(label)
-        super.setColor(colorHex)
+        return super.getColor()
     }
 
-    override fun getName() = label
-    override fun setName(name: String?) = this.takeIf { name == label }
-        ?: copy(label = name ?: throw IllegalArgumentException("Label name cannot be null"))
-
-    override fun getColor() = colorHex
-    override fun setColor(color: String?) = copy(colorHex = color ?: randomColor())
+    override fun setColor(color: String?): Label {
+        require(color?.length == 6 && color.toLongOrNull(16) != null) {
+            "Invalid color hexadecimal $color. Value must be six chars long in the [0-f] range"
+        }
+        return super.setColor(color)
+    }
 
     companion object {
         fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
