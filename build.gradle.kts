@@ -21,6 +21,10 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://repo.eclipse.org/content/repositories/egit-releases/")
+        content { includeGroup("org.eclipse.mylyn.github") }
+    }
     mapOf(
         "kotlin/dokka" to setOf("org.jetbrains.dokka"),
         "kotlin/kotlinx.html" to setOf("org.jetbrains.kotlinx"),
