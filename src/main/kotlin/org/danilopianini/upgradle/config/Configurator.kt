@@ -2,10 +2,12 @@ package org.danilopianini.upgradle.config
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.toValue
+import org.eclipse.egit.github.core.Label
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
 import org.eclipse.egit.github.core.service.RepositoryService
 import java.util.stream.Collectors
+import kotlin.random.Random
 
 data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
     init {
@@ -55,10 +57,34 @@ data class RepoDescriptor(
     }
 }
 
+data class ColoredLabel(val label: String, val colorHex: String = randomColor()) : Label() {
+
+    init {
+        require(colorHex.length == 6 && colorHex.toLongOrNull(16) != null) {
+            "Invalid color hexadecimal $colorHex. Value must be six chars long in the [0-f] range"
+        }
+        super.setName(label)
+        super.setColor(colorHex)
+    }
+
+    override fun getName() = label
+    override fun setName(name: String?) = this.takeIf { name == label }
+        ?: copy(label = name ?: throw IllegalArgumentException("Label name cannot be null"))
+
+    override fun getColor() = colorHex
+    override fun setColor(color: String?) = copy(colorHex = color ?: randomColor())
+
+    companion object {
+        fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
+        fun randomColor() = Random.Default.nextBytes(3).toHexString()
+    }
+}
+
 data class Configuration(
     val includes: List<RepoDescriptor>,
     val excludes: List<RepoDescriptor>?,
-    val modules: List<String>
+    val modules: List<String>,
+    val labels: List<ColoredLabel>
 ) {
 
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
