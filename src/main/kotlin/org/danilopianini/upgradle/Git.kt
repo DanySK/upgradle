@@ -65,18 +65,20 @@ fun Repository.createPullRequest(update: Operation, head: String, base: String, 
                 .setBodyText(update.pullRequestMessage)
         )
 
-fun Repository.applyLabels(labels: Iterable<Label>, pr: PullRequest, credentials: Credentials) {
-    val labelService = LabelService().authenticated(credentials)
-    val availableLabels = labelService.getLabels(this)
-    val actualLabels = labels.map { desiredLabel ->
-        availableLabels.find { desiredLabel.name == it.name }
-            ?: labelService.createLabel(this, desiredLabel).also {
-                UpGradle.logger.info("Created new label $desiredLabel")
-            }
+fun Repository.applyLabels(labels: Collection<Label>, pr: PullRequest, credentials: Credentials) {
+    if (labels.isNotEmpty()) {
+        val labelService = LabelService().authenticated(credentials)
+        val availableLabels = labelService.getLabels(this)
+        val actualLabels = labels.map { desiredLabel ->
+            availableLabels.find { desiredLabel.name == it.name }
+                    ?: labelService.createLabel(this, desiredLabel).also {
+                        UpGradle.logger.info("Created new label $desiredLabel")
+                    }
+        }
+        labelService.client.post<List<Label>>(
+                "/repos/${owner.login}/$name/issues/${pr.number}/labels",
+                mapOf("labels" to actualLabels.map { it.name }),
+                List::class.java
+        )
     }
-    labelService.client.post<List<Label>>(
-        "/repos/${owner.login}/$name/issues/${pr.number}/labels",
-        mapOf("labels" to actualLabels.map { it.name }),
-        List::class.java
-    )
 }

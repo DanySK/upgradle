@@ -84,7 +84,7 @@ data class Configuration(
     val includes: List<RepoDescriptor>,
     val excludes: List<RepoDescriptor>?,
     val modules: List<String>,
-    val labels: List<ColoredLabel>
+    val labels: List<ColoredLabel> = emptyList()
 ) {
 
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
