@@ -59,7 +59,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                                     base = branch.name,
                                     credentials = credentials
                             )
-                            logger.info("Pull request #${pullRequest.id} opened ${update.branch} -> ${branch.name}")
+                            logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
                             repository.applyLabels(configuration.labels, pullRequest, credentials)
                         } catch (requestException: RequestException) {
                             when (requestException.status) {
