@@ -81,22 +81,46 @@ can identify a list of possible update `Operation`s to apply, and how to apply t
 This program expects a configuration in form of a YAML, JSON, or TOML file.
 In the remainder, the former will be used.
 
-The structure is quite simple, and expects three keys:
+### Available options
+
+The structure is quite simple, and expects the following keys:
 
 * `includes`: which repositories should be considered
 * (optional) `excludes`: matching repositories will not be considered. The selection is operated over those selected by `includes`
 * `modules`: the list of modules to execute
+* *optional* `labels`: the list of labels to apply to the pull requests
+
+### Inclusion and exclusion of repositories
 
 `includes` and `excludes` share the same syntax.
 There can be a single or multiple descriptors,
 each one  with the following information:
 
-* `owners`: . matching users' repositories will be considered
+* `owners`: matching users' repositories will be considered
 * `repos`: matching repository names will be considered
 * `branches`: matching repository names will be considered
 
 Every key can be a string or a list of strings,
 that will get interpreted as regular expressions.
+
+### Module selection
+
+`modules` expects a list of strings.
+Each string must be a valid UpGradle module, namely, a subclass of `org.danilopianini.upgradle.Module`
+available in the classpath.
+
+### Labeling the pull requests
+
+`labels` allows for configuring labels with which the pull requests opened by UpGradle will be labeled.
+This is especially useful for further automated workflows,
+e.g. using [automerge](https://github.com/pascalgn/automerge-action).
+The content of `labels` is a single or multiple descriptor expecting:
+
+* `label`: a string with the name of the label
+* *optional* `color` a color hexadecimal string, six characters long. If omitted, a random color will be generated.
+
+In case the desired label is not available in the repository for which the PR is being prepared,
+a new label with the desired name and color will be added.
 
 ### Working example
 
