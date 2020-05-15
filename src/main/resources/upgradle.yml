@@ -4,9 +4,9 @@ includes:
     branches:
       - master
 excludes:
-  - owners: 
+  - owners:
         - Placu95
-    repos: 
+    repos:
         - Experiment-2020-ACSOS-LoRa
 modules:
   - GradleWrapper
