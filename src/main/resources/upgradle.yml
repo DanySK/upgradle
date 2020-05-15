@@ -3,6 +3,11 @@ includes:
     repos: .*
     branches:
       - master
+excludes:
+  - owners: 
+        - Placu95
+    repos: 
+        - Experiment-2020-ACSOS-LoRa
 modules:
   - GradleWrapper
   - RefreshVersions
