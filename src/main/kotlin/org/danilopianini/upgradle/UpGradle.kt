@@ -22,8 +22,58 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.system.exitProcess
 
-class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("examples/upgradle.yml") }) {
+class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgradle.yml") }) {
     val configuration = Configurator.load(configuration)
+
+    fun runModule(repository: Repository, branch: RepositoryBranch, module: Module, credentials: Credentials) {
+        val user = repository.owner.login
+        logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
+        val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
+        val destination = createTempDir(workdirPrefix)
+        logger.info("Working inside ${destination.absolutePath}")
+        val git = repository.clone(branch, destination, credentials)
+        val branches = git.branchList().call().map { it.name }
+        logger.info("Available branches: $branches")
+        module(destination)
+                .asSequence()
+                .filterNot { it.branch in branches }
+                .forEach { update ->
+                    prepareRepository(git, branch, update)
+                    // Run the update operation
+                    logger.info("Running update...")
+                    val changes = update()
+                    logger.info("Changes: {}", changes)
+                    git.add(destination, changes)
+                    // Commit changes
+                    git.commit(update.commitMessage)
+                    // Push the new branch
+                    logger.info("Pushing ${update.branch}...")
+                    val pushResults = git.pushTo(update.branch, credentials)
+                    // If push ok, create a pull request
+                    if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
+                        logger.info("Push successful, creating a pull request")
+                        try {
+                            val pullRequest = repository.createPullRequest(
+                                    update,
+                                    head = update.branch,
+                                    base = branch.name,
+                                    credentials = credentials
+                            )
+                            logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
+                            repository.applyLabels(configuration.labels, pullRequest, credentials)
+                        } catch (requestException: RequestException) {
+                            when (requestException.status) {
+                                UNPROCESSABLE_ENTITY -> println(requestException.message)
+                                else -> throw requestException
+                            }
+                        }
+                    } else {
+                        logger.error("Push failed.")
+                        pushResults.map(Any::toString).forEach(logger::error)
+                    }
+                }
+        destination.deleteRecursively()
+    }
 
     companion object {
 
@@ -78,55 +128,6 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
                 git.checkout().setCreateBranch(true).setName(update.branch).call()
             }
 
-        fun runModule(repository: Repository, branch: RepositoryBranch, module: Module, credentials: Credentials) {
-            val user = repository.owner.login
-            logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
-            val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
-            val destination = createTempDir(workdirPrefix)
-            logger.info("Working inside ${destination.absolutePath}")
-            val git = repository.clone(branch, destination, credentials)
-            val branches = git.branchList().call().map { it.name }
-            logger.info("Available branches: $branches")
-            module(destination)
-                .asSequence()
-                .filterNot { it.branch in branches }
-                .forEach { update ->
-                    prepareRepository(git, branch, update)
-                    // Run the update operation
-                    logger.info("Running update...")
-                    val changes = update()
-                    logger.info("Changes: {}", changes)
-                    git.add(destination, changes)
-                    // Commit changes
-                    git.commit(update.commitMessage)
-                    // Push the new branch
-                    logger.info("Pushing ${update.branch}...")
-                    val pushResults = git.pushTo(update.branch, credentials)
-                    // If push ok, create a pull request
-                    if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
-                        logger.info("Push successful, creating a pull request")
-                        try {
-                            repository.createPullRequest(
-                                    update,
-                                    head = update.branch,
-                                    base = branch.name,
-                                    credentials = credentials
-                            )
-                            logger.info("Pull request opened ${update.branch} -> ${branch.name}")
-                        } catch (requestException: RequestException) {
-                            when (requestException.status) {
-                                UNPROCESSABLE_ENTITY -> println(requestException.message)
-                                else -> throw requestException
-                            }
-                        }
-                    } else {
-                        logger.error("Push failed.")
-                        pushResults.map(Any::toString).forEach(logger::error)
-                    }
-                }
-            destination.deleteRecursively()
-        }
-
         @JvmStatic
         fun main(args: Array<String>) {
             val upgradle: UpGradle = upgradleFromArguments(args)
@@ -138,7 +139,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("exampl
                         .map { it.asUpGradleModule }
                         .forEach { module ->
                             launch {
-                                runModule(repository, branch, module, credentials)
+                                upgradle.runModule(repository, branch, module, credentials)
                             }
                         }
                 }

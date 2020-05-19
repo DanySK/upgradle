@@ -18,7 +18,19 @@ abstract class GradleRootModule : Module {
     final override fun invoke(localDirectory: File): List<Operation> = with(localDirectory.gradleRoots()) {
         when {
             size <= 1 -> flatMap { operationsInProjectRoot(it) }
-            else -> mapIndexed { index, file -> operationsInProjectRoot(file, "project-$index") }.flatten()
+            else -> map { file ->
+                val projectId = file.relativeTo(localDirectory).toString()
+                    // They cannot have two consecutive dots .. anywhere.
+                    .replace("..", "_doubledot_")
+                    // No ASCII control chars (i.e. bytes values are lower than \040, or \177 DEL)
+                    .filter { it.toInt() in 32..126 }
+                    // no slash-separated component can begin with a dot . or end with the sequence .lock
+                    .replace(".lock", "_dotlock_")
+                    // Remap forbidden chars
+                    .map { forbiddenCharsSubstitutions.getOrDefault(it, it) }
+                    .joinToString(separator = "")
+                operationsInProjectRoot(file, projectId)
+            }.flatten()
         }
     }
 
@@ -26,6 +38,18 @@ abstract class GradleRootModule : Module {
 
     companion object {
         const val defaultProjectId = "root"
+        private val forbiddenCharsSubstitutions = mapOf(
+            ' ' to "_",
+            '\\' to "_backslash_",
+            '~' to "_tilde_",
+            '?' to "_questionmark_",
+            '@' to "_at_",
+            '*' to "_star_",
+            '[' to "_openbracket_",
+            '^' to "_caret_",
+            ':' to "_colon_",
+            '.' to "_dot_"
+        )
         fun inProject(projectId: String) = if (projectId == defaultProjectId) "" else " in $projectId"
         fun projectDescriptor(projectId: String) = inProject(projectId).replace(" ", "-")
     }

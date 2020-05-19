@@ -2,10 +2,12 @@ package org.danilopianini.upgradle.config
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.toValue
+import org.eclipse.egit.github.core.Label
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
 import org.eclipse.egit.github.core.service.RepositoryService
 import java.util.stream.Collectors
+import kotlin.random.Random
 
 data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
     init {
@@ -55,10 +57,33 @@ data class RepoDescriptor(
     }
 }
 
+class ColoredLabel : Label() {
+
+    override fun getColor(): String {
+        if (super.getColor() == null) {
+            setColor(randomColor())
+        }
+        return super.getColor()
+    }
+
+    override fun setColor(color: String?): Label {
+        require(color?.length == 6 && color.toLongOrNull(16) != null) {
+            "Invalid color hexadecimal $color. Value must be six chars long in the [0-f] range"
+        }
+        return super.setColor(color)
+    }
+
+    companion object {
+        fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
+        fun randomColor() = Random.Default.nextBytes(3).toHexString()
+    }
+}
+
 data class Configuration(
     val includes: List<RepoDescriptor>,
     val excludes: List<RepoDescriptor>?,
-    val modules: List<String>
+    val modules: List<String>,
+    val labels: List<ColoredLabel> = emptyList()
 ) {
 
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =

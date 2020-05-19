@@ -6,10 +6,12 @@ import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.Pattern
+import org.eclipse.egit.github.core.Label
 import org.eclipse.egit.github.core.PullRequest
 import org.eclipse.egit.github.core.PullRequestMarker
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
+import org.eclipse.egit.github.core.service.LabelService
 import org.eclipse.egit.github.core.service.PullRequestService
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
@@ -54,11 +56,29 @@ fun Git.pushTo(branch: String, credentials: Credentials): List<RemoteRefUpdate> 
 fun Repository.createPullRequest(update: Operation, head: String, base: String, credentials: Credentials) =
     PullRequestService()
         .authenticated(credentials)
-            .createPullRequest(this,
-                PullRequest()
-                    .setBase(PullRequestMarker().setRef(base).setLabel(base))
-                    .setHead(PullRequestMarker().setRef(head).setLabel(head))
-                    .setTitle(update.pullRequestTitle)
-                    .setBody(update.pullRequestMessage)
-                    .setBodyText(update.pullRequestMessage)
-            )
+        .createPullRequest(this,
+            PullRequest()
+                .setBase(PullRequestMarker().setRef(base).setLabel(base))
+                .setHead(PullRequestMarker().setRef(head).setLabel(head))
+                .setTitle(update.pullRequestTitle)
+                .setBody(update.pullRequestMessage)
+                .setBodyText(update.pullRequestMessage)
+        )
+
+fun Repository.applyLabels(labels: Collection<Label>, pr: PullRequest, credentials: Credentials) {
+    if (labels.isNotEmpty()) {
+        val labelService = LabelService().authenticated(credentials)
+        val availableLabels = labelService.getLabels(this)
+        val actualLabels = labels.map { desiredLabel ->
+            availableLabels.find { desiredLabel.name == it.name }
+                    ?: labelService.createLabel(this, desiredLabel).also {
+                        UpGradle.logger.info("Created new label $desiredLabel")
+                    }
+        }
+        labelService.client.post<List<Label>>(
+                "/repos/${owner.login}/$name/issues/${pr.number}/labels",
+                mapOf("labels" to actualLabels.map { it.name }),
+                List::class.java
+        )
+    }
+}
