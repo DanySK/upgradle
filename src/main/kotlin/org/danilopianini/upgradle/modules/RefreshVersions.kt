@@ -16,13 +16,14 @@ class RefreshVersions : GradleRootModule() {
         if (versionsFile?.exists() == true) {
             val execFile = filesInRoot.find { it.name == executable }
             if (execFile?.exists() == true) {
+                val originalVersions = versionsFile.readText()
                 logger.info("Running refreshVersions")
                 return when (val refresh = runRefresh(projectRoot)) {
                     is ProcessOutcome.Error -> {
                         logger.error("Could not refresh versions, process ended with error ${refresh.code}.")
                         emptyList()
                     }
-                    is ProcessOutcome.Ok -> prepareUpdates(projectRoot, projectId, versionsFile)
+                    is ProcessOutcome.Ok -> prepareUpdates(projectId, versionsFile, originalVersions)
                 }
             } else {
                 logger.warn("No {} file available in {}", execFile, projectRoot.absolutePath)
@@ -33,7 +34,7 @@ class RefreshVersions : GradleRootModule() {
         return emptyList()
     }
 
-    private fun prepareUpdates(projectRoot: File, projectId: String, versionsFile: File): List<Operation> {
+    private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
         logger.info("Version refresh successful. Extracting available updates")
         val versionsContent = versionsFile.readText()
         val matches = updateExtraction.findAll(versionsContent)
@@ -64,12 +65,11 @@ class RefreshVersions : GradleRootModule() {
                 val newVersionRegex = new.map { if (it in """\^$,.|?*+()[]{}""") """\$it""" else "$it" }
                         .joinToString(separator = "")
                 val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
-                val updated = versionsContent
+                val updated = originalVersions
                         .replace("$dependency=$old", "$dependency=$new")
                         .replace(updateLineRegex, "")
                 logger.info("Updating the version file")
                 versionsFile.writeText(updated)
-                runRefresh(projectRoot)
                 logger.info("Version file updated")
                 listOf(OnFile(versionsFile))
             }
