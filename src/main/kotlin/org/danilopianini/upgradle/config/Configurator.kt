@@ -79,11 +79,14 @@ class ColoredLabel : Label() {
     }
 }
 
+data class CommitAuthor(val name: String = "UpGradle [Bot]", val email: String = "<>")
+
 data class Configuration(
     val includes: List<RepoDescriptor>,
     val excludes: List<RepoDescriptor>?,
     val modules: List<String>,
-    val labels: List<ColoredLabel> = emptyList()
+    val labels: List<ColoredLabel> = emptyList(),
+    val author: CommitAuthor = CommitAuthor()
 ) {
 
     fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
