@@ -45,7 +45,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                     logger.info("Changes: {}", changes)
                     git.add(destination, changes)
                     // Commit changes
-                    git.commit(update.commitMessage)
+                    git.commit(update.commitMessage, configuration.author)
                     // Push the new branch
                     logger.info("Pushing ${update.branch}...")
                     val pushResults = git.pushTo(update.branch, credentials)

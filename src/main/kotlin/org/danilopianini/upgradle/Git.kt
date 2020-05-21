@@ -6,6 +6,7 @@ import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.Pattern
+import org.danilopianini.upgradle.config.CommitAuthor
 import org.eclipse.egit.github.core.Label
 import org.eclipse.egit.github.core.PullRequest
 import org.eclipse.egit.github.core.PullRequestMarker
@@ -39,8 +40,8 @@ fun Git.add(location: File, changes: Iterable<Change>) = add().apply {
         }
     }.call()
 
-fun Git.commit(message: String, author: String = "UpGradle [Bot]", email: String = "danilo.pianini@gmail.com") =
-    commit().setMessage(message).setAuthor(PersonIdent(author, email)).call()
+fun Git.commit(message: String, author: CommitAuthor) =
+    commit().setMessage(message).setAuthor(PersonIdent(author.name, author.email)).call()
 
 fun Git.pushTo(branch: String, credentials: Credentials): List<RemoteRefUpdate> = push()
     .authenticated(credentials)
