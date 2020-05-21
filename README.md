@@ -88,7 +88,8 @@ The structure is quite simple, and expects the following keys:
 * `includes`: which repositories should be considered
 * (optional) `excludes`: matching repositories will not be considered. The selection is operated over those selected by `includes`
 * `modules`: the list of modules to execute
-* *optional* `labels`: the list of labels to apply to the pull requests
+* (optional) `labels`: the list of labels to apply to the pull requests
+* (optional) `author`: Specifies the author to be used for commit messages
 
 ### Inclusion and exclusion of repositories
 
@@ -121,6 +122,15 @@ The content of `labels` is a single or multiple descriptor expecting:
 
 In case the desired label is not available in the repository for which the PR is being prepared,
 a new label with the desired name and color will be added.
+
+### Specifying the commit author
+
+`author` is used to determine which name and email address is to be associated for the generated commits and directly relate to git config. It's advised to at least use a real email address.
+
+* `name` - Relates to `git config user.name`, defaults to `UpGradle [Bot]`
+* `email` - Relates to `git config user.email`, defaults to `<>`
+
+N.B. The author of the pull-request only depends on the owner of the `GITHUB_TOKEN`
 
 ### Working example
 
