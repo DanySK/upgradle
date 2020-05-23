@@ -7,13 +7,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
-import org.danilopianini.upgradle.remote.FilteringBranchSource
 import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.config.Configurator
-import org.eclipse.egit.github.core.Repository
-import org.eclipse.egit.github.core.RepositoryBranch
+import org.danilopianini.upgradle.remote.Branch
+import org.danilopianini.upgradle.remote.EclipseGitSource
+import org.danilopianini.upgradle.remote.Repository
 import org.eclipse.egit.github.core.client.RequestException
 import org.eclipse.egit.github.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
@@ -26,8 +26,8 @@ import kotlin.system.exitProcess
 class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgradle.yml") }) {
     val configuration = Configurator.load(configuration)
 
-    fun runModule(repository: Repository, branch: RepositoryBranch, module: Module, credentials: Credentials) {
-        val user = repository.owner.login
+    fun runModule(repository: Repository, branch: Branch, module: Module, credentials: Credentials) {
+        val user = repository.owner
         logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
         val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
         val destination = createTempDir(workdirPrefix)
@@ -119,7 +119,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             return this
         }
 
-        fun prepareRepository(git: Git, branch: RepositoryBranch, update: Operation): Boolean =
+        fun prepareRepository(git: Git, branch: Branch, update: Operation): Boolean =
             git.branchList().call().none { it.name == branch.name }.then {
                 logger.info("Checking out ${branch.name}")
                 git.checkout().setName(branch.name).call()
@@ -136,7 +136,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val credentials = Credentials.loadGitHubCredentials()
             val repositoryService = RepositoryService().authenticated(credentials)
             runBlocking {
-                FilteringBranchSource(repositoryService)
+                EclipseGitSource(repositoryService)
                     .getMatching(includes = config.includes, excludes = config.excludes.orEmpty())
                     .forEach { (repository, branch) ->
                         config.modules

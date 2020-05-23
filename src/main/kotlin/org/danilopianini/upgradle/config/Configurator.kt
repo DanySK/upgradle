@@ -2,29 +2,10 @@ package org.danilopianini.upgradle.config
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.toValue
+import org.danilopianini.upgradle.remote.Branch
+import org.danilopianini.upgradle.remote.Repository
 import org.eclipse.egit.github.core.Label
-import org.eclipse.egit.github.core.Repository
-import org.eclipse.egit.github.core.RepositoryBranch
 import kotlin.random.Random
-
-data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
-    init {
-        if (token == null) {
-            require(user != null) {
-                "Either an accessToken or a userName must be provided."
-            }
-            require(password != null) {
-                "If no accessToken is provided, then a password is mandatory"
-            }
-        } else {
-            require(password == null) {
-                "You must not provide both accessToken and password."
-            }
-        }
-    }
-}
-
-data class SelectedRemoteBranch(val repository: Repository, val branch: RepositoryBranch)
 
 data class RepoDescriptor(
     val owners: List<String>,
@@ -36,10 +17,10 @@ data class RepoDescriptor(
     private val branchesRegex by lazy { branches.toRegex() }
 
     infix fun matches(repository: Repository) =
-        ownersRegex.any { it matches repository.owner.login } &&
+        ownersRegex.any { it matches repository.owner } &&
                 reposRegex.any { it matches repository.name }
 
-    infix fun matches(branch: RepositoryBranch) =
+    infix fun matches(branch: Branch) =
         branchesRegex.any { it matches branch.name }
 
     companion object {
