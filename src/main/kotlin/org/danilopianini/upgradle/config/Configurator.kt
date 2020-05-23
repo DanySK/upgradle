@@ -5,8 +5,6 @@ import com.uchuhimo.konf.toValue
 import org.eclipse.egit.github.core.Label
 import org.eclipse.egit.github.core.Repository
 import org.eclipse.egit.github.core.RepositoryBranch
-import org.eclipse.egit.github.core.service.RepositoryService
-import java.util.stream.Collectors
 import kotlin.random.Random
 
 data class GitHubAccess(val token: String? = null, val user: String? = null, val password: String? = null) {
@@ -33,24 +31,16 @@ data class RepoDescriptor(
     val repos: List<String>,
     val branches: List<String> = listOf(".*")
 ) {
+    private val ownersRegex by lazy { owners.toRegex() }
+    private val reposRegex by lazy { repos.toRegex() }
+    private val branchesRegex by lazy { branches.toRegex() }
 
-    val ownersRegex by lazy { owners.toRegex() }
-    val reposRegex by lazy { repos.toRegex() }
-    val branchesRegex by lazy { branches.toRegex() }
+    infix fun matches(repository: Repository) =
+        ownersRegex.any { it matches repository.owner.login } &&
+                reposRegex.any { it matches repository.name }
 
-    fun validBranchesFor(service: RepositoryService, repository: Repository): List<RepositoryBranch> {
-        val owner = repository.owner.login
-        val name = repository.name
-        val repoMatches = ownersRegex.any { it.matches(owner) } && reposRegex.any { it.matches(name) }
-        return if (repoMatches) {
-            service.getBranches { "$owner/$name" }
-                .filter { branch: RepositoryBranch ->
-                    branchesRegex.any { it.matches(branch.name) }
-                }
-        } else {
-            emptyList()
-        }
-    }
+    infix fun matches(branch: RepositoryBranch) =
+        branchesRegex.any { it matches branch.name }
 
     companion object {
         private fun List<String>.toRegex() = map { Regex(it) }
@@ -82,32 +72,12 @@ class ColoredLabel : Label() {
 data class CommitAuthor(val name: String = "UpGradle [Bot]", val email: String = "<>")
 
 data class Configuration(
-    val includes: List<RepoDescriptor>,
-    val excludes: List<RepoDescriptor>?,
+    val includes: Set<RepoDescriptor>,
+    val excludes: Set<RepoDescriptor>?,
     val modules: List<String>,
     val labels: List<ColoredLabel> = emptyList(),
     val author: CommitAuthor = CommitAuthor()
-) {
-
-    fun selectedRemoteBranchesFor(service: RepositoryService): Set<SelectedRemoteBranch> =
-        service.repositories.parallelStream()
-            .flatMap { remote ->
-                includes.parallelStream()
-                    .flatMap { it.validBranchesFor(service, remote).stream() }
-                    .collect(Collectors.toList())
-                    .distinctBy { it.name }
-                    .stream()
-                    .map { SelectedRemoteBranch(remote, it) }
-            }
-            .filter { (remote, branch) ->
-                excludes?.none { exclusion ->
-                    exclusion.ownersRegex.any { it.matches(remote.owner.login) } &&
-                        exclusion.reposRegex.any { it.matches(remote.name) } &&
-                        exclusion.branchesRegex.any { it.matches(branch.name) }
-                } ?: true
-            }
-            .collect(Collectors.toSet())
-}
+)
 
 object Configurator {
     fun load(body: Config.() -> Config): Configuration = Config().body()

@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
+import org.danilopianini.upgradle.remote.FilteringBranchSource
 import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
 import org.danilopianini.upgradle.api.Operation
@@ -131,18 +132,21 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         @JvmStatic
         fun main(args: Array<String>) {
             val upgradle: UpGradle = upgradleFromArguments(args)
+            val config = upgradle.configuration
             val credentials = Credentials.loadGitHubCredentials()
             val repositoryService = RepositoryService().authenticated(credentials)
             runBlocking {
-                upgradle.configuration.selectedRemoteBranchesFor(repositoryService).forEach { (repository, branch) ->
-                    upgradle.configuration.modules
-                        .map { it.asUpGradleModule }
-                        .forEach { module ->
-                            launch {
-                                upgradle.runModule(repository, branch, module, credentials)
+                FilteringBranchSource(repositoryService)
+                    .getMatching(includes = config.includes, excludes = config.excludes.orEmpty())
+                    .forEach { (repository, branch) ->
+                        config.modules
+                            .map { it.asUpGradleModule }
+                            .forEach { module ->
+                                launch {
+                                    upgradle.runModule(repository, branch, module, credentials)
+                                }
                             }
-                        }
-                }
+                    }
                 logger.info("Done")
             }
         }
