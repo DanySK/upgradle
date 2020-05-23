@@ -10,18 +10,23 @@ import kotlin.random.Random
 data class RepoDescriptor(
     val owners: List<String>,
     val repos: List<String>,
-    val branches: List<String> = listOf(".*")
+    val branches: List<String> = listOf(".*"),
+    val topics: List<String>
 ) {
     private val ownersRegex by lazy { owners.toRegex() }
     private val reposRegex by lazy { repos.toRegex() }
     private val branchesRegex by lazy { branches.toRegex() }
+    private val topicsRegex by lazy { topics.toRegex() }
 
-    infix fun matches(repository: Repository) =
+    fun matches(repository: Repository) =
         ownersRegex.any { it matches repository.owner } &&
                 reposRegex.any { it matches repository.name }
 
-    infix fun matches(branch: Branch) =
+    fun matches(branch: Branch) =
         branchesRegex.any { it matches branch.name }
+
+    fun matches(topic: String) =
+        topicsRegex.any { it matches topic }
 
     companion object {
         private fun List<String>.toRegex() = map { Regex(it) }

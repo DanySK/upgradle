@@ -12,7 +12,7 @@ import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.config.Configurator
 import org.danilopianini.upgradle.remote.Branch
-import org.danilopianini.upgradle.remote.EclipseGitSource
+import org.danilopianini.upgradle.remote.EclipseSource
 import org.danilopianini.upgradle.remote.Repository
 import org.eclipse.egit.github.core.client.RequestException
 import org.eclipse.egit.github.core.service.RepositoryService
@@ -136,8 +136,8 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val credentials = Credentials.loadGitHubCredentials()
             val repositoryService = RepositoryService().authenticated(credentials)
             runBlocking {
-                EclipseGitSource(repositoryService)
-                    .getMatching(includes = config.includes, excludes = config.excludes.orEmpty())
+                EclipseSource(repositoryService)
+                    .getMatching(includes = config.includes, excludes = config.excludes)
                     .forEach { (repository, branch) ->
                         config.modules
                             .map { it.asUpGradleModule }
