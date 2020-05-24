@@ -1,9 +1,9 @@
+package org.danilopianini.upgradle.config
+
 import com.uchuhimo.konf.source.yaml
 import io.kotest.assertions.inspecting
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import org.danilopianini.upgradle.config.Configuration
-import org.danilopianini.upgradle.config.Configurator
 
 class TestAuthorConfig : FreeSpec({
     "A loaded configuration" - {
