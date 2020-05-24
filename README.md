@@ -99,7 +99,8 @@ each one  with the following information:
 
 * `owners`: matching users' repositories will be considered
 * `repos`: matching repository names will be considered
-* `branches`: matching repository names will be considered
+* `branches`: matching branch names will be considered
+* `topics`: matching [topics](https://github.com/topics) will be considered
 
 Every key can be a string or a list of strings,
 that will get interpreted as regular expressions.
