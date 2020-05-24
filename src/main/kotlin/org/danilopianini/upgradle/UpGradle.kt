@@ -13,6 +13,7 @@ import org.danilopianini.upgradle.config.Configurator
 import org.danilopianini.upgradle.remote.Branch
 import org.danilopianini.upgradle.remote.GraphqlSource
 import org.danilopianini.upgradle.remote.Repository
+import org.danilopianini.upgradle.remote.Selector
 import org.danilopianini.upgradle.remote.graphql.FuelGithubClient
 import org.eclipse.egit.github.core.client.RequestException
 import org.eclipse.jgit.api.Git
@@ -135,7 +136,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val credentials = Credentials.loadGitHubCredentials()
             runBlocking {
                 GraphqlSource(FuelGithubClient(credentials))
-                    .getMatching(includes = config.includes, excludes = config.excludes)
+                    .getMatching(Selector(includes = config.includes, excludes = config.excludes.orEmpty()))
                     .forEach { (repository, branch) ->
                         config.modules
                             .map { it.asUpGradleModule }

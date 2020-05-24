@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.runBlocking
@@ -29,28 +28,27 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
             .filter { repo -> selector.applyTo(repo, RepoDescriptor::matches) }
             .buffer(200)
             .flatMapMerge { repo ->
-                flow { if (repo.hasMatchingTopic(selector)) emit(repo) }
+                flow { if (hasMatchingTopic(repo, selector)) emit(repo) }
             }
-            .flatMapMerge { repo -> repo.matchingBranches(selector) }
-            .onEach { logger.info("Found $it") }
+            .flatMapMerge { repo -> matchingBranches(repo, selector) }
             .toCollection(mutableSetOf()).also {
                 logger.info("Found ${it.size} matching configs")
             }
     }
 
-    @ExperimentalCoroutinesApi
-    private suspend fun Repository.hasMatchingTopic(selector: Selector): Boolean =
-        client.topicsOf(this)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun hasMatchingTopic(repository: Repository, selector: Selector): Boolean =
+        client.topicsOf(repository)
             // Repos without topics would be filtered even without topic rule
             .onStart { emit("") }
             .filter { topic -> selector.applyTo(topic, RepoDescriptor::matches) }
             .count() > 0
 
-    private fun Repository.matchingBranches(selector: Selector): Flow<BranchSource.SelectedRemoteBranch> =
-        client.branchesOf(this)
+    private fun matchingBranches(repository: Repository, selector: Selector): Flow<BranchSource.SelectedRemoteBranch> =
+        client.branchesOf(repository)
             .map { GithubBranch(it) }
             .filter { branch -> selector.applyTo(branch, RepoDescriptor::matches) }
-            .map { BranchSource.SelectedRemoteBranch(this, it) }
+            .map { BranchSource.SelectedRemoteBranch(repository, it) }
 
     private fun RemoteRepository.isWritable() =
         (viewerPermission == "WRITE" || viewerPermission == "ADMIN") &&

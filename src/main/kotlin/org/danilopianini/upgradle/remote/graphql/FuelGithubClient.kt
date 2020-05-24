@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.core.awaitResponseResult
 import com.github.kittinunf.fuel.gson.gsonDeserializerOf
 import com.github.kittinunf.fuel.gson.jsonBody
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -20,7 +21,7 @@ import java.util.Base64
 
 class FuelGithubClient(credentials: Credentials) : GithubGraphqlClient {
     private companion object {
-        val classLoader by lazy { this::class.java.classLoader }
+        val classLoader: ClassLoader by lazy { this::class.java.classLoader }
         const val ENDPOINT = "https://api.github.com/graphql"
     }
 
@@ -66,16 +67,19 @@ class FuelGithubClient(credentials: Credentials) : GithubGraphqlClient {
             mapOf("after" to after, "owner" to repo.owner, "name" to repo.name)
         )
 
+    @FlowPreview
     override fun repositories(): Flow<RemoteRepository> =
         paginate(::repoRequest)
             .flatMapConcat { it.data.viewer.repositories.nodes.orEmpty().asFlow() }
             .filterNotNull()
 
+    @FlowPreview
     override fun topicsOf(repository: Repository): Flow<String> =
         paginate { after -> topicRequest(after, repository) }
             .flatMapConcat { it.data.repository.info.nodes.orEmpty().asFlow() }
             .mapNotNull { it?.topic?.name }
 
+    @FlowPreview
     override fun branchesOf(repository: Repository): Flow<String> =
         paginate { after -> branchRequest(after, repository) }
             .flatMapConcat { it.data.repository.info.nodes.orEmpty().asFlow() }
