@@ -8,10 +8,10 @@ import org.eclipse.egit.github.core.Label
 import kotlin.random.Random
 
 data class RepoDescriptor(
-    val owners: List<String>,
-    val repos: List<String>,
-    val branches: List<String> = listOf(".*"),
-    val topics: List<String>
+    private val owners: List<String>,
+    private val repos: List<String>,
+    private val branches: List<String> = listOf(".*"),
+    private val topics: List<String> = listOf(".*")
 ) {
     private val ownersRegex by lazy { owners.toRegex() }
     private val reposRegex by lazy { repos.toRegex() }
