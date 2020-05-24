@@ -1,0 +1,27 @@
+query UserRepositories($after: String) {
+    viewer {
+        repositories(
+            isLocked: false,
+            orderBy: {field: NAME, direction: ASC},
+            ownerAffiliations: [OWNER, COLLABORATOR, ORGANIZATION_MEMBER],
+            affiliations: [OWNER, COLLABORATOR, ORGANIZATION_MEMBER],
+            first: 100,
+            after: $after) {
+            nodes {
+                isArchived
+                isDisabled
+                isMirror
+                name
+                owner {
+                    login
+                }
+                url
+                viewerPermission
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+        }
+    }
+}

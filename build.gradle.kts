@@ -35,6 +35,7 @@ repositories {
             content { groups.forEach { includeGroup(it) } }
         }
     }
+    jcenter()
 }
 
 gitSemVer {
@@ -48,6 +49,11 @@ dependencies {
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
     implementation(kotlin("stdlib-jdk8"))
+
+    implementation("com.github.kittinunf.fuel:fuel:_")
+    implementation("com.github.kittinunf.fuel:fuel-coroutines:_")
+    implementation("com.github.kittinunf.fuel:fuel-gson:_")
+
     testImplementation("io.kotest:kotest-runner-junit5:_")
     testImplementation("io.kotest:kotest-assertions-core-jvm:_")
     runtimeOnly("ch.qos.logback:logback-classic:_")
@@ -56,7 +62,7 @@ dependencies {
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
-    freeCompilerArgs = listOf("-XXLanguage:+InlineClasses")
+    freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xopt-in=kotlin.RequiresOptIn")
 }
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {

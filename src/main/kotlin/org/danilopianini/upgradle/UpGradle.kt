@@ -6,16 +6,15 @@ import com.uchuhimo.konf.source.yaml
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
-import org.danilopianini.upgradle.api.Credentials.Companion.authenticated
 import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.config.Configurator
 import org.danilopianini.upgradle.remote.Branch
-import org.danilopianini.upgradle.remote.EclipseSource
+import org.danilopianini.upgradle.remote.GraphqlSource
 import org.danilopianini.upgradle.remote.Repository
+import org.danilopianini.upgradle.remote.graphql.FuelGithubClient
 import org.eclipse.egit.github.core.client.RequestException
-import org.eclipse.egit.github.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.transport.RemoteRefUpdate
@@ -134,9 +133,8 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val upgradle: UpGradle = upgradleFromArguments(args)
             val config = upgradle.configuration
             val credentials = Credentials.loadGitHubCredentials()
-            val repositoryService = RepositoryService().authenticated(credentials)
             runBlocking {
-                EclipseSource(repositoryService)
+                GraphqlSource(FuelGithubClient(credentials))
                     .getMatching(includes = config.includes, excludes = config.excludes)
                     .forEach { (repository, branch) ->
                         config.modules

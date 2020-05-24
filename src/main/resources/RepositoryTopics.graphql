@@ -1,0 +1,15 @@
+query RepositoryTopics($after: String, $owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+        info: repositoryTopics(after: $after, first: 100) {
+            nodes {
+                topic {
+                    name
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+        }
+    }
+}
