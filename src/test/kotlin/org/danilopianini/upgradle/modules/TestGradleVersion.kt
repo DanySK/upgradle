@@ -3,7 +3,6 @@ package org.danilopianini.upgradle.modules
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
-import org.danilopianini.upgradle.modules.GradleVersion
 
 fun version(origin: String) = GradleVersion.fromGithubRelease(origin)
 

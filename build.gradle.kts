@@ -137,7 +137,8 @@ signing {
 }
 
 publishOnCentral {
-    projectDescription.set("A bot meant to pack updates and send pull requests. Much like dependabot, but way more homemade and focused on Gradle.")
+    projectDescription.set("A bot meant to pack updates and send pull requests." +
+        "Much like dependabot, but way more homemade and focused on Gradle.")
     projectLongName.set("UpGradle")
     licenseName.set("GPL")
     licenseUrl.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
