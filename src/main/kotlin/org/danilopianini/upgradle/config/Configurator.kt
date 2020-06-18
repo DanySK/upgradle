@@ -43,13 +43,14 @@ class ColoredLabel : Label() {
     }
 
     override fun setColor(color: String?): Label {
-        require(color?.length == 6 && color.toLongOrNull(16) != null) {
+        require(color?.length == COLOR_HEX_LENGTH && color.toLongOrNull(16) != null) {
             "Invalid color hexadecimal $color. Value must be six chars long in the [0-f] range"
         }
         return super.setColor(color)
     }
 
     companion object {
+        const val COLOR_HEX_LENGTH = 3 * 2
         fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
         fun randomColor() = Random.Default.nextBytes(3).toHexString()
     }

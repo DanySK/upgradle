@@ -23,7 +23,7 @@ abstract class GradleRootModule : Module {
                     // They cannot have two consecutive dots .. anywhere.
                     .replace("..", "_doubledot_")
                     // No ASCII control chars (i.e. bytes values are lower than \040, or \177 DEL)
-                    .filter { it.toInt() in 32..126 }
+                    .filter { it.toInt() in ' '.toInt()..'~'.toInt() }
                     // no slash-separated component can begin with a dot . or end with the sequence .lock
                     .replace(".lock", "_dotlock_")
                     // Remap forbidden chars

@@ -26,7 +26,7 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
             .filter { it.isWritable() }
             .map { GithubRepository(it) }
             .filter { repo -> selector.applyTo(repo, RepoDescriptor::matches) }
-            .buffer(200)
+            .buffer()
             .flatMapMerge { repo ->
                 flow { if (hasMatchingTopic(repo, selector)) emit(repo) }
             }
