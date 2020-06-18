@@ -3,4 +3,4 @@ complexity:
     threshold: 5
 style:
   MagicNumber:
-    ignoreNumbers: '-1,0,1,2,3,4,10'
+    ignoreNumbers: [-1, 0, 1, 2, 3, 4, 10]
