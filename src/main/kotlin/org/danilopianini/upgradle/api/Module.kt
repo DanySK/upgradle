@@ -14,7 +14,7 @@ interface Module : (File) -> List<Operation> {
     object StringExtensions {
         val subclasses by lazy {
             ClassGraph()
-                .blacklistPackages("java", "javax")
+                .blackListPackages("java", "javax")
                 .enableAllInfo()
                 .scan()
                 .getClassesImplementing(Module::class.java.canonicalName)
@@ -22,6 +22,8 @@ interface Module : (File) -> List<Operation> {
                 .loadClasses()
                 .filterIsInstance<Class<out Module>>()
         }
+
+        private fun ClassGraph.blackListPackages(vararg packageNames: String) = rejectPackages(*packageNames)
 
         val String.asUpGradleModule: Module get() =
             ListK.applicative()
