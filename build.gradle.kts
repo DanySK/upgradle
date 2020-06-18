@@ -35,7 +35,6 @@ repositories {
             content { groups.forEach { includeGroup(it) } }
         }
     }
-    jcenter()
 }
 
 gitSemVer {
