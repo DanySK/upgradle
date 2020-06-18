@@ -35,6 +35,11 @@ repositories {
             content { groups.forEach { includeGroup(it) } }
         }
     }
+    // To be removed when https://github.com/kittinunf/Result/issues/23 is fixed
+    maven {
+        url = jcenter().url
+        content { includeGroup("com.github.kittinunf.result") }
+    }
 }
 
 gitSemVer {
