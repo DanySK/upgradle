@@ -62,7 +62,6 @@ before_install:
 script:
   - travis_retry ./gradlew clean check
 before_cache:
-  - ./gradlew --stop
   - $GRAVIS/clean-gradle-cache
 cache:
   directories:
