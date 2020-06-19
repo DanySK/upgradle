@@ -1,18 +1,19 @@
 package org.danilopianini.upgradle.remote
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import org.danilopianini.upgradle.config.RepoDescriptor
 
 internal class TestSelector : FreeSpec({
     "A Selector" - {
-        val match = mockk<RepoDescriptor> {
-            every { matches(any<String>()) } returns true
+        val match = mock<RepoDescriptor> {
+            on { matches(any<String>()) } doReturn true
         }
-        val noMatch = mockk<RepoDescriptor> {
-            every { matches(any<String>()) } returns false
+        val noMatch = mock<RepoDescriptor> {
+            on { matches(any<String>()) } doReturn false
         }
         infix fun Selector.shouldEvalTo(expected: Boolean) =
             applyTo("value", RepoDescriptor::matches) shouldBe expected

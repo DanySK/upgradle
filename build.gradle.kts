@@ -60,7 +60,7 @@ dependencies {
 
     testImplementation("io.kotest:kotest-runner-junit5:_")
     testImplementation("io.kotest:kotest-assertions-core-jvm:_")
-    testImplementation("io.mockk:mockk:_")
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:_")
     runtimeOnly("ch.qos.logback:logback-classic:_")
 }
 

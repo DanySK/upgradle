@@ -1,42 +1,44 @@
 package org.danilopianini.upgradle.remote
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doAnswer
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import org.danilopianini.upgradle.remote.graphql.GithubGraphqlClient
+import org.mockito.stubbing.OngoingStubbing
 
-internal class TestGraphqlSource : FreeSpec({
-    val client = mockk<GithubGraphqlClient>()
-    val selector = mockk<Selector>()
-    val subject = GraphqlSource(client)
-
+internal object TestGraphqlSource : FreeSpec({
     "The Graphql Source" - {
         "should match topics correctly, returning" - {
             "true" - {
                 "when repo has matching topic" {
-                    every { selector.applyTo(any<String>(), any()) } answers { v ->
-                        v.invocation.args.first() == "topic"
+                    test(withTopics = flowOf("topic"), returning = true) {
+                        doAnswer { it.arguments.first() == "topic" }
                     }
-                    every { client.topicsOf(any()) } returns flowOf("topic")
-
-                    subject.hasMatchingTopic(mockk(), selector) shouldBe true
                 }
                 "when repo has no topics but no topic selector configured" {
-                    every { selector.applyTo(any<String>(), any()) } returns true
-                    every { client.topicsOf(any()) } returns emptyFlow()
-
-                    subject.hasMatchingTopic(mockk(), selector) shouldBe true
+                    test(withTopics = emptyFlow(), returning = true) { doReturn(true) }
                 }
             }
             "false when repo has no matching topics" {
-                every { selector.applyTo(any<String>(), any()) } returns false
-                every { client.topicsOf(any()) } returns flowOf("topic")
-
-                subject.hasMatchingTopic(mockk(), selector) shouldBe false
+                test(withTopics = flowOf("topic"), returning = false) { doReturn(false) }
             }
         }
     }
 })
+
+private suspend inline fun test(
+    withTopics: Flow<String>,
+    returning: Boolean,
+    selectorAction: OngoingStubbing<Boolean>.() -> Unit
+) {
+    val selector = mock<Selector> { on { applyTo(any<String>(), any()) }.selectorAction() }
+    val client = mock<GithubGraphqlClient> { on { topicsOf(any()) } doReturn withTopics }
+    val subject = GraphqlSource(client)
+    subject.hasMatchingTopic(mock(), selector) shouldBe returning
+}
