@@ -1,0 +1,4 @@
+com.github.kittinunf.*:*
+           ^^^^^^^^^^^
+io.kotest:*
+   ^^^^^^
