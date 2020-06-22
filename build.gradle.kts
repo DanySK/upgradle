@@ -35,11 +35,6 @@ repositories {
             content { groups.forEach { includeGroup(it) } }
         }
     }
-    // To be removed when https://github.com/kittinunf/Result/issues/23 is fixed
-    maven {
-        url = jcenter().url
-        content { includeGroup("com.github.kittinunf.result") }
-    }
 }
 
 gitSemVer {
@@ -48,21 +43,25 @@ gitSemVer {
 
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:_")
+
+    implementation("com.github.kittinunf.fuel:fuel:_")
+    implementation("com.github.kittinunf.fuel:fuel-coroutines:_")
+    implementation("com.github.kittinunf.fuel:fuel-gson:_")
     implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
     implementation("com.uchuhimo:konf:_")
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation("com.github.kittinunf.fuel:fuel:_")
-    implementation("com.github.kittinunf.fuel:fuel-coroutines:_")
-    implementation("com.github.kittinunf.fuel:fuel-gson:_")
+    // Temporary workaround for kittinunf/fuel#757
+    implementation("com.github.kittinunf.result:result:_")
+
+    runtimeOnly("ch.qos.logback:logback-classic:_")
 
     testImplementation("io.kotest:kotest-runner-junit5:_")
     testImplementation("io.kotest:kotest-assertions-core-jvm:_")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:_")
     testImplementation("org.mockito:mockito-core:_")
-    runtimeOnly("ch.qos.logback:logback-classic:_")
 }
 
 val compileKotlin: KotlinCompile by tasks
