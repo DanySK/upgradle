@@ -55,10 +55,10 @@ class FuelGithubClient(credentials: Credentials) : GithubGraphqlClient {
     private suspend fun repoRequest(after: String?): UserRepositories =
         requestOf("UserRepositories.graphql", mapOf("after" to after))
 
-    private suspend fun topicRequest(after: String?, repo: Repository): RepositoryDetails<TopicData> =
+    private suspend fun topicRequest(after: String?, owner: String, name: String): RepositoryDetails<TopicData> =
         requestOf(
             "RepositoryTopics.graphql",
-            mapOf("after" to after, "owner" to repo.owner, "name" to repo.name)
+            mapOf("after" to after, "owner" to owner, "name" to name)
         )
 
     private suspend fun branchRequest(after: String?, repo: Repository): RepositoryDetails<BranchData> =
@@ -74,8 +74,8 @@ class FuelGithubClient(credentials: Credentials) : GithubGraphqlClient {
             .filterNotNull()
 
     @FlowPreview
-    override fun topicsOf(repository: Repository): Flow<String> =
-        paginate { after -> topicRequest(after, repository) }
+    override fun topicsOf(owner: String, name: String): Flow<String> =
+        paginate { after -> topicRequest(after, owner, name) }
             .flatMapConcat { it.data.repository.info.nodes.orEmpty().asFlow() }
             .mapNotNull { it?.topic?.name }
 

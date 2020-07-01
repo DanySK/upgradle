@@ -5,6 +5,6 @@ import org.danilopianini.upgradle.remote.Repository
 
 interface GithubGraphqlClient {
     fun repositories(): Flow<RemoteRepository>
-    fun topicsOf(repository: Repository): Flow<String>
+    fun topicsOf(owner: String, name: String): Flow<String>
     fun branchesOf(repository: Repository): Flow<String>
 }

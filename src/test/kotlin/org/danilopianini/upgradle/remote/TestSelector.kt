@@ -10,13 +10,13 @@ import org.danilopianini.upgradle.config.RepoDescriptor
 internal class TestSelector : FreeSpec({
     "A Selector" - {
         val match = mock<RepoDescriptor> {
-            on { matches(any<String>()) } doReturn true
+            on { matches(any()) } doReturn true
         }
         val noMatch = mock<RepoDescriptor> {
-            on { matches(any<String>()) } doReturn false
+            on { matches(any()) } doReturn false
         }
         infix fun Selector.shouldEvalTo(expected: Boolean) =
-            applyTo("value", RepoDescriptor::matches) shouldBe expected
+            selects(mock()) shouldBe expected
 
         "without includes should match no input" - {
             Selector(includes = emptySet(), excludes = emptySet()) shouldEvalTo false

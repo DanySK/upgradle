@@ -2,7 +2,7 @@ package org.danilopianini.upgradle.config
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.toValue
-import org.danilopianini.upgradle.remote.Branch
+import org.danilopianini.upgradle.remote.BranchSource
 import org.danilopianini.upgradle.remote.Repository
 import org.eclipse.egit.github.core.Label
 import kotlin.random.Random
@@ -18,15 +18,15 @@ data class RepoDescriptor(
     private val branchesRegex by lazy { branches.toRegex() }
     private val topicsRegex by lazy { topics.toRegex() }
 
-    fun matches(repository: Repository) =
-        ownersRegex.any { it matches repository.owner } &&
-                reposRegex.any { it matches repository.name }
+    fun matches(remoteBranch: BranchSource.SelectedRemoteBranch) =
+        ownersRegex.any { it matches remoteBranch.repository.owner } &&
+        reposRegex.any { it matches remoteBranch.repository.name } &&
+        branchesRegex.any { it matches remoteBranch.branch.name } &&
+        matchesTopics(remoteBranch.repository)
 
-    fun matches(branch: Branch) =
-        branchesRegex.any { it matches branch.name }
-
-    fun matches(topic: String) =
-        topicsRegex.any { it matches topic }
+    private fun matchesTopics(repository: Repository) =
+        repository.topics.isEmpty() ||
+        topicsRegex.any { topicRegex -> repository.topics.any { topicRegex matches it } }
 
     companion object {
         private fun List<String>.toRegex() = map { Regex(it) }
