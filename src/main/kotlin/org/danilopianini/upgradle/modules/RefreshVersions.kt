@@ -37,23 +37,12 @@ class RefreshVersions : GradleRootModule() {
     private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
         logger.info("Version refresh successful. Extracting available updates")
         val versionsContent = versionsFile.readText()
-        val matches = updateExtraction.findAll(versionsContent)
+        val matches = updateExtractionRegex.findAll(versionsContent)
         if (matches.isEmpty()) {
             logger.info("No updates available")
         }
         return matches.map { match ->
-            val (dependency, old, new) = match.destructured
-            val artifact = when {
-                dependency.startsWith(pluginPrefix) ->
-                    dependency.substring(pluginPrefix.length)
-                dependency.startsWith(versionPrefix) ->
-                    if (dependency.contains("..")) {
-                        dependency.drop(dependency.lastIndexOf("..") + 2)
-                    } else {
-                        dependency.substring(versionPrefix.length)
-                    }
-                else -> dependency
-            }
+            val (descriptor, artifact, old, new) = match.destructured
             logger.info("Found update for {}: {} -> {}", artifact, old, new)
             val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
             SimpleOperation(
@@ -66,7 +55,7 @@ class RefreshVersions : GradleRootModule() {
                         .joinToString(separator = "")
                 val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
                 val updated = originalVersions
-                        .replace("$dependency=$old", "$dependency=$new")
+                        .replace("$descriptor=$old", "$descriptor=$new")
                         .replace(updateLineRegex, "")
                 logger.info("Updating the version file")
                 versionsFile.writeText(updated)
@@ -81,7 +70,9 @@ class RefreshVersions : GradleRootModule() {
         private const val taskName = "refreshVersions"
         private const val pluginPrefix = "plugin."
         private const val versionPrefix = "version."
-        private val updateExtraction = Regex("""(.*)=(.*)\n##\s*# available=(.*)""")
+        private const val extractor =
+                """\s*((?:version|plugin)\.(?:.*\.)?([a-zA-Z].*))=(\S*)\s*##\s*# available=(\S*)"""
+        val updateExtractionRegex = Regex(extractor)
         private val logger = LoggerFactory.getLogger(RefreshVersions::class.java)
         private val isWindows = System.getProperty("os.name").contains("windows", ignoreCase = true)
         private val executable = "gradlew${ ".bat".takeIf { isWindows } ?: "" }"
