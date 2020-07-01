@@ -2,12 +2,12 @@ package org.danilopianini.upgradle.remote
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.remote.graphql.GithubGraphqlClient
@@ -18,7 +18,7 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    override fun getMatching(selector: Selector): Set<BranchSource.SelectedRemoteBranch> = runBlocking {
+    override fun getMatching(selector: Selector): Flow<BranchSource.SelectedRemoteBranch> = runBlocking {
         client.repositories()
             .filter { it.isWritable() }
             .map { GithubRepository(it, client.topicsOf(it.owner.login, it.name).toList(ArrayList())) }
@@ -30,9 +30,6 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
                 selector.selects(branch).also { if (!it) logger.info("Discarded: $branch") }
             }
             .onEach { logger.info("Selected: $it") }
-            .toCollection(mutableSetOf()).also {
-                logger.info("Found ${it.size} matching configs")
-            }
     }
 
     private fun RemoteRepository.isWritable() =
