@@ -20,12 +20,11 @@ data class RepoDescriptor(
 
     fun matches(remoteBranch: BranchSource.SelectedRemoteBranch) =
         ownersRegex.any { it matches remoteBranch.repository.owner } &&
-        reposRegex.any { it matches remoteBranch.repository.name } &&
-        branchesRegex.any { it matches remoteBranch.branch.name } &&
-        matchesTopics(remoteBranch.repository)
+            reposRegex.any { it matches remoteBranch.repository.name } &&
+            branchesRegex.any { it matches remoteBranch.branch.name } &&
+            matchesTopics(remoteBranch.repository)
 
-    private fun matchesTopics(repository: Repository) =
-        repository.topics.isEmpty() ||
+    private fun matchesTopics(repository: Repository) = repository.topics.isEmpty() ||
         topicsRegex.any { topicRegex -> repository.topics.any { topicRegex matches it } }
 
     companion object {
@@ -67,6 +66,5 @@ data class Configuration(
 )
 
 object Configurator {
-    fun load(body: Config.() -> Config): Configuration = Config().body()
-            .at("").toValue()
+    fun load(body: Config.() -> Config): Configuration = Config().body().at("").toValue()
 }

@@ -14,13 +14,13 @@ class TestRefreshVersions : FreeSpec({
 
             "entries with a space" - {
                 testEqualityOf(
-                        """
-                         version.konf=6.0.0
-                        ### available=1.2.3.4
-                        """.trimIndent(),
-                        "konf",
-                        "6.0.0",
-                        "1.2.3.4"
+                    """
+                     version.konf=6.0.0
+                    ### available=1.2.3.4
+                    """.trimIndent(),
+                    artifact = "konf",
+                    oldVersion = "6.0.0",
+                    newVersion = "1.2.3.4"
                 )
             }
 

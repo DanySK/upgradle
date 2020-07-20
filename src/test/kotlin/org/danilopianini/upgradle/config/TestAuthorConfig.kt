@@ -8,23 +8,25 @@ import io.kotest.matchers.shouldBe
 class TestAuthorConfig : FreeSpec({
     "A loaded configuration" - {
         fun configOf(s: String): Configuration = Configurator.load { from.yaml.string(s) }
-        val baseConfig = """
-            includes:
-              - owners: .*
-                repos: .*
-                branches:
-                  - master
-            modules:
-              - GradleWrapper
-              - RefreshVersions
-        """.trimIndent()
+        val baseConfig =
+            """
+                includes:
+                  - owners: .*
+                    repos: .*
+                    branches:
+                      - master
+                modules:
+                  - GradleWrapper
+                  - RefreshVersions
+            """.trimIndent()
 
         "should use given author" {
-            val authorNode = """
-                author:
-                  name: Test McTestface
-                  email: test@example.com
-            """.trimIndent()
+            val authorNode =
+                """
+                    author:
+                      name: Test McTestface
+                      email: test@example.com
+                """.trimIndent()
 
             inspecting(configOf("$baseConfig\n$authorNode").author) {
                 name shouldBe "Test McTestface"

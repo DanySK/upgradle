@@ -52,10 +52,12 @@ sealed class Credentials {
         }
 
         fun <C : TransportCommand<*, *>> C.authenticated(credentials: Credentials): C = this.also {
-            setCredentialsProvider(when (credentials) {
-                is Token -> UsernamePasswordCredentialsProvider(credentials.token, "")
-                is UserAndPassword -> UsernamePasswordCredentialsProvider(credentials.user, credentials.password)
-            })
+            setCredentialsProvider(
+                when (credentials) {
+                    is Token -> UsernamePasswordCredentialsProvider(credentials.token, "")
+                    is UserAndPassword -> UsernamePasswordCredentialsProvider(credentials.user, credentials.password)
+                }
+            )
         }
     }
 }
