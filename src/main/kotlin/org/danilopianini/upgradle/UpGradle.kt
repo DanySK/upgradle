@@ -44,43 +44,43 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         val branches = git.branchList().call().map { it.name }
         logger.info("Available branches: $branches")
         module(destination)
-                .asSequence()
-                .filterNot { it.branch in branches }
-                .forEach { update ->
-                    prepareRepository(git, branch, update)
-                    // Run the update operation
-                    logger.info("Running update...")
-                    val changes = update()
-                    logger.info("Changes: {}", changes)
-                    git.add(destination, changes)
-                    // Commit changes
-                    git.commit(update.commitMessage, configuration.author)
-                    // Push the new branch
-                    logger.info("Pushing ${update.branch}...")
-                    val pushResults = git.pushTo(update.branch, credentials)
-                    // If push ok, create a pull request
-                    if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
-                        logger.info("Push successful, creating a pull request")
-                        try {
-                            val pullRequest = repository.createPullRequest(
-                                    update,
-                                    head = update.branch,
-                                    base = branch.name,
-                                    credentials = credentials
-                            )
-                            logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
-                            repository.applyLabels(configuration.labels, pullRequest, credentials)
-                        } catch (requestException: RequestException) {
-                            when (requestException.status) {
-                                UNPROCESSABLE_ENTITY -> println(requestException.message)
-                                else -> throw requestException
-                            }
+            .asSequence()
+            .filterNot { it.branch in branches }
+            .forEach { update ->
+                prepareRepository(git, branch, update)
+                // Run the update operation
+                logger.info("Running update...")
+                val changes = update()
+                logger.info("Changes: {}", changes)
+                git.add(destination, changes)
+                // Commit changes
+                git.commit(update.commitMessage, configuration.author)
+                // Push the new branch
+                logger.info("Pushing ${update.branch}...")
+                val pushResults = git.pushTo(update.branch, credentials)
+                // If push ok, create a pull request
+                if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
+                    logger.info("Push successful, creating a pull request")
+                    try {
+                        val pullRequest = repository.createPullRequest(
+                            update,
+                            head = update.branch,
+                            base = branch.name,
+                            credentials = credentials
+                        )
+                        logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
+                        repository.applyLabels(configuration.labels, pullRequest, credentials)
+                    } catch (requestException: RequestException) {
+                        when (requestException.status) {
+                            UNPROCESSABLE_ENTITY -> println(requestException.message)
+                            else -> throw requestException
                         }
-                    } else {
-                        logger.error("Push failed.")
-                        pushResults.map(Any::toString).forEach(logger::error)
                     }
+                } else {
+                    logger.error("Push failed.")
+                    pushResults.map(Any::toString).forEach(logger::error)
                 }
+            }
         destination.deleteRecursively()
     }
 

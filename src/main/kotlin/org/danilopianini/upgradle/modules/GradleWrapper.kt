@@ -33,14 +33,12 @@ class GradleWrapper : GradleRootModule() {
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
                     SimpleOperation(
-                            branch = "bump-gradle-wrapper-$localGradleVersion-to-$newerGradle${
-                                projectDescriptor(projectId)
-                            }",
-                            commitMessage = description,
-                            pullRequestTitle = description,
-                            pullRequestMessage = "Gradle wrapper${
-                                inProject(projectId)
-                            } $localGradleVersion -> $newerGradle."
+                        branch =
+                            "bump-gradle-wrapper-to-$newerGradle${projectDescriptor(projectId)}",
+                        commitMessage = description,
+                        pullRequestTitle = description,
+                        pullRequestMessage =
+                            "Gradle wrapper${ inProject(projectId) } $localGradleVersion -> $newerGradle."
                     ) {
                         val newProperties = oldProperties.replace(versionMatch, "gradle-$newerGradle-bin.zip")
                         projectRoot.gradleWrapperProperties.writeText(newProperties)
@@ -88,9 +86,7 @@ data class GradleVersion(
         rc: String? = null
     ) : this (major.toInt(), minor.toInt(), patch?.toIntOrNull(), rc?.toIntOrNull())
 
-    val downloadReference: String = "$major.$minor${
-            patch?.let { ".$it" } ?: ""
-        }${ rc?.let { "-rc-$it" } ?: "" }"
+    val downloadReference: String = "$major.$minor${ patch?.let { ".$it" } ?: "" }${ rc?.let { "-rc-$it" } ?: "" }"
 
     override fun compareTo(other: GradleVersion) =
         major.compareOrNull(other.major)

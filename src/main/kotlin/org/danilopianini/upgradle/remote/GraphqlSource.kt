@@ -33,8 +33,7 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
     }
 
     private fun RemoteRepository.isWritable() =
-        (viewerPermission == "WRITE" || viewerPermission == "ADMIN") &&
-                !(isArchived || isDisabled || isMirror)
+        (viewerPermission == "WRITE" || viewerPermission == "ADMIN") && !(isArchived || isDisabled || isMirror)
 
     private inner class GithubRepository(
         private val underlying: RemoteRepository,

@@ -12,8 +12,8 @@ abstract class GradleRootModule : Module {
             ?: false
 
     protected fun File.gradleRoots(): List<File> = listOf(this).takeIf { isGradleProject }
-            ?: listFiles()?.filter { it.isDirectory }?.flatMap { it.gradleRoots() }
-            ?: emptyList()
+        ?: listFiles()?.filter { it.isDirectory }?.flatMap { it.gradleRoots() }
+        ?: emptyList()
 
     final override fun invoke(localDirectory: File): List<Operation> = with(localDirectory.gradleRoots()) {
         when {
