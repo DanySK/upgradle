@@ -1,7 +1,6 @@
 import com.github.breadmoirai.githubreleaseplugin.GithubReleaseTask
 import org.danilopianini.gradle.mavencentral.JavadocJar
 import org.danilopianini.gradle.mavencentral.SourcesJar
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
@@ -25,14 +24,11 @@ repositories {
         url = uri("https://repo.eclipse.org/content/repositories/egit-releases/")
         content { includeGroup("org.eclipse.mylyn.github") }
     }
-    mapOf(
-        "kotlin/dokka" to setOf("org.jetbrains.dokka"),
-        "kotlin/kotlinx.html" to setOf("org.jetbrains.kotlinx"),
-        "arturbosch/code-analysis" to setOf("io.gitlab.arturbosch.detekt")
-    ).forEach { (uriPart, groups) ->
-        maven {
-            url = uri("https://dl.bintray.com/$uriPart")
-            content { groups.forEach { includeGroup(it) } }
+    jcenter {
+        content {
+            includeGroup("com.soywiz.korlibs.korte")
+            includeGroup("org.jetbrains") // for markdown
+            includeGroupByRegex("""org\.jetbrains\.(kotlinx|dokka)""")
         }
     }
 }
@@ -107,13 +103,11 @@ tasks.withType<Jar> {
     }
 }
 
-tasks.withType<DokkaTask> {
-    // Workaround for https://github.com/Kotlin/dokka/issues/294
-    outputFormat = if (JavaVersion.current().isJava10Compatible) "html" else "javadoc"
-    outputDirectory = "$buildDir/javadoc"
-    tasks.withType<JavadocJar> {
-        from(outputDirectory)
-    }
+tasks.dokkaJavadoc.configure {
+    outputDirectory = "$buildDir/docs/javadoc"
+}
+tasks.withType<JavadocJar> {
+    dependsOn(tasks.dokkaJavadoc)
 }
 
 val githubToken: String? by project
