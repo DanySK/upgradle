@@ -75,9 +75,13 @@ class TestRefreshVersions : FreeSpec({
 }) {
     companion object {
 
-        fun extractFrom(fileContent: String) = RefreshVersions.updateExtractionRegex
+        fun extractFrom(fileContent: String) = RefreshVersions.extractUpdatesRegex
             .findAll(fileContent)
-            .map { it.destructured.toList().subList(1, 4) }
+            .flatMap {
+                val updateInfo = it.destructured.toList().subList(1, 4)
+                RefreshVersions.extractVersionsRegex.findAll(updateInfo[2])
+                    .map { updateInfo.subList(0, 2) + listOf(it.destructured.component1()) }
+            }
             .toList()
 
         fun testThat(

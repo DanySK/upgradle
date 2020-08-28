@@ -1,6 +1,7 @@
 package org.danilopianini.upgradle.modules
 
 import org.danilopianini.upgradle.CachedFor
+import org.danilopianini.upgradle.api.Module.ListExtensions.filterByStrategy
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
@@ -12,9 +13,11 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
 @ExperimentalTime
-class GradleWrapper : GradleRootModule() {
+class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
 
-    private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
+    private val strategy: String by options.withDefault { "next" }
+    private val versionRegex: String by options.withDefault { ".*" }
+    private val versionMatch = versionRegex.toRegex()
 
     override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val properties = projectRoot.gradleWrapperProperties
@@ -24,11 +27,13 @@ class GradleWrapper : GradleRootModule() {
             val localGradleVersion = versionMatch.find(oldProperties)?.asGradleVersion
             if (localGradleVersion != null) {
                 logger.info("Detected Gradle $localGradleVersion")
-                val nextGradle = gradleVersions.filter { it > localGradleVersion }
-                if (nextGradle.isEmpty()) {
-                    logger.info("The Gradle wrapper looks up to date here ($localGradleVersion)")
-                } else {
+                val nextGradle = gradleVersions
+                    .filter { it > localGradleVersion && versionMatch.matches(it.downloadReference) }
+                    .filterByStrategy(strategy)
+                if (nextGradle.iterator().hasNext()) {
                     logger.info("Gradle can be updated to: {}", nextGradle)
+                } else {
+                    logger.info("The Gradle wrapper looks up to date here ($localGradleVersion)")
                 }
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
@@ -57,6 +62,7 @@ class GradleWrapper : GradleRootModule() {
 
         private val logger = LoggerFactory.getLogger(GradleWrapper::class.java)
         private val versionExtractor = Regex("""gradle-${GradleVersion.distVersionRegex}-bin\.zip""")
+        private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
         val gradleVersions: List<GradleVersion> by CachedFor(1.hours) {
             val response = URL("https://services.gradle.org/distributions/").readText()

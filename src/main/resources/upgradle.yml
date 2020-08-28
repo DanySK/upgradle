@@ -4,5 +4,13 @@ includes:
     branches:
       - master
 modules:
-  - GradleWrapper
-  - RefreshVersions
+  - name: GradleWrapper
+    options:
+      # Strategies "all", "next" "latest"
+      strategy: next
+      versionRegex: \d+(\.\d+)*
+  - name: RefreshVersions
+    options:
+      # Strategies "all", "next" "latest"
+      strategy:
+      versionRegex: v?\d+(\.\d+)*

@@ -1,13 +1,18 @@
 package org.danilopianini.upgradle.modules
 
 import arrow.core.extensions.sequence.foldable.isEmpty
+import org.danilopianini.upgradle.api.Module.ListExtensions.filterByStrategy
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class RefreshVersions : GradleRootModule() {
+class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
+
+    private val strategy: String by options.withDefault { "next" }
+    private val versionRegex: String by options.withDefault { ".*" }
+    private val validVersionRegex = versionRegex.toRegex()
 
     override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val filesInRoot = projectRoot.listFiles()?.filter { it.isFile } ?: emptyList()
@@ -37,42 +42,49 @@ class RefreshVersions : GradleRootModule() {
     private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
         logger.info("Version refresh successful. Extracting available updates")
         val versionsContent = versionsFile.readText()
-        val matches = updateExtractionRegex.findAll(versionsContent)
-        if (matches.isEmpty()) {
+        val dependenciesWithUpdates = extractUpdatesRegex.findAll(versionsContent)
+        if (dependenciesWithUpdates.isEmpty()) {
             logger.info("No updates available")
         }
-        return matches.map { match ->
-            val (descriptor, artifact, old, new) = match.destructured
-            logger.info("Found update for {}: {} -> {}", artifact, old, new)
-            val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
-            SimpleOperation(
-                branch = "bump-$artifact-to-$new${projectDescriptor(projectId)}",
-                commitMessage = message,
-                pullRequestTitle = message,
-                pullRequestMessage = "This update was prepared for you by UpGradle, at your service."
-            ) {
-                val newVersionRegex = new.map { if (it in """\^$,.|?*+()[]{}""") """\$it""" else "$it" }
-                    .joinToString(separator = "")
-                val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
-                val updated = originalVersions
-                    .replace("$descriptor=$old", "$descriptor=$new")
-                    .replace(updateLineRegex, "")
-                logger.info("Updating the version file")
-                versionsFile.writeText(updated)
-                logger.info("Version file updated")
-                listOf(OnFile(versionsFile))
-            }
+        return dependenciesWithUpdates.flatMap { match ->
+            val (descriptor, artifact, old, candidates) = match.destructured
+            extractVersionsRegex.findAll(candidates)
+                .map { it.destructured.component1() }
+                .filter { version -> validVersionRegex.matches(version) }
+                .filterByStrategy(strategy)
+                .map { new ->
+                    logger.info("Found update for {}: {} -> {}", artifact, old, new)
+                    val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
+                    SimpleOperation(
+                        branch = "bump-$artifact-to-$new${projectDescriptor(projectId)}",
+                        commitMessage = message,
+                        pullRequestTitle = message,
+                        pullRequestMessage = "This update was prepared for you by UpGradle, at your service."
+                    ) {
+                        val newVersionRegex = new.map { if (it in """\^$,.|?*+()[]{}""") """\$it""" else "$it" }
+                            .joinToString(separator = "")
+                        val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
+                        val updated = originalVersions
+                            .replace("$descriptor=$old", "$descriptor=$new")
+                            .replace(updateLineRegex, "")
+                        logger.info("Updating the version file")
+                        versionsFile.writeText(updated)
+                        logger.info("Version file updated")
+                        listOf(OnFile(versionsFile))
+                    }
+                }
         }.toList()
     }
 
     companion object {
         private const val versionFileName = "versions.properties"
         private const val taskName = "refreshVersions"
-        private const val pluginPrefix = "plugin."
-        private const val versionPrefix = "version."
-        private const val extractor =
-            """\s*((?:version|plugin)\.(?:.*\.)?([a-zA-Z].*))=(\S*)\s*##\s*# available=(\S*)"""
-        val updateExtractionRegex = Regex(extractor)
+        private const val extractVersions =
+            """\s*##\s*# available=(\S+)\R?"""
+        private const val extractUpdates =
+            """\s*((?:version|plugin)\.(?:.*\.)?([a-zA-Z].*))=(\S+)\R(\s*##\s*# available=(?:\S+)\R?)+"""
+        internal val extractUpdatesRegex = Regex(extractUpdates)
+        internal val extractVersionsRegex = Regex(extractVersions)
         private val logger = LoggerFactory.getLogger(RefreshVersions::class.java)
         private val isWindows = System.getProperty("os.name").contains("windows", ignoreCase = true)
         private val executable = "gradlew${ ".bat".takeIf { isWindows } ?: "" }"

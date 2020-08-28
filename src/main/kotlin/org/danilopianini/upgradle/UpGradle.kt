@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Module
-import org.danilopianini.upgradle.api.Module.StringExtensions.asUpGradleModule
+import org.danilopianini.upgradle.api.Module.StringExtensions.asModule
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.config.Configurator
 import org.danilopianini.upgradle.remote.Branch
@@ -144,7 +144,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             val upgradle: UpGradle = upgradleFromArguments(args)
             val config = upgradle.configuration
             val credentials = Credentials.loadGitHubCredentials()
-            val modules = config.modules.map { it.asUpGradleModule }
+            val modules = config.modules.map { it.asModule }
             runBlocking(Dispatchers.Default) {
                 GraphqlSource(FuelGithubClient(credentials))
                     .getMatching(Selector(includes = config.includes, excludes = config.excludes.orEmpty()))

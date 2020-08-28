@@ -16,8 +16,10 @@ class TestAuthorConfig : FreeSpec({
                     branches:
                       - master
                 modules:
-                  - GradleWrapper
-                  - RefreshVersions
+                  - name: GradleWrapper
+                    options:
+                        strategy: "all"
+                  - name: RefreshVersions
             """.trimIndent()
 
         "should use given author" {

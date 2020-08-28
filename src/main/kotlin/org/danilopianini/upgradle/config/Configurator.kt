@@ -57,10 +57,14 @@ class ColoredLabel : Label() {
 
 data class CommitAuthor(val name: String = "UpGradle [Bot]", val email: String = "<>")
 
+typealias ModuleOptions = Map<String, String>
+
+data class UpgradleModule(val name: String, val options: ModuleOptions = emptyMap())
+
 data class Configuration(
     val includes: Set<RepoDescriptor>,
     val excludes: Set<RepoDescriptor>?,
-    val modules: List<String>,
+    val modules: List<UpgradleModule>,
     val labels: List<ColoredLabel> = emptyList(),
     val author: CommitAuthor = CommitAuthor()
 )
