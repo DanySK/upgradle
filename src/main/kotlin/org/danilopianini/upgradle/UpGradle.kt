@@ -46,7 +46,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         logger.info("Available branches: $branches")
         module(destination)
             .asSequence()
-            .filterNot { it.branch in branches }
+            .filter { proposedUpdate -> branches.none { it.endsWith(proposedUpdate.branch) } }
             .forEach { update ->
                 prepareRepository(git, branch, update)
                 // Run the update operation
