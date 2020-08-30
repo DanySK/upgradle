@@ -12,5 +12,5 @@ modules:
   - name: RefreshVersions
     options:
       # Strategies "all", "next" "latest"
-      strategy:
+      strategy: next
       versionRegex: v?\d+(\.\d+)*
