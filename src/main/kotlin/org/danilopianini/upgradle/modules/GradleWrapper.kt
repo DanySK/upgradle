@@ -38,8 +38,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
                     SimpleOperation(
-                        branch =
-                            "bump-gradle-wrapper-to-$newerGradle${projectDescriptor(projectId)}",
+                        branch = "bump-gradle-wrapper-to-$newerGradle${projectDescriptor(projectId)}",
                         commitMessage = description,
                         pullRequestTitle = description,
                         pullRequestMessage =

@@ -60,9 +60,11 @@ interface Module : (File) -> List<Operation> {
          * If [strategy] is "latest", takes the last element.
          * Otherwise, it returns the list as-is
          */
-        fun <T : Any> Iterable<T>.filterByStrategy(strategy: String): Iterable<T> = when (strategy) {
-            in next -> listOfNotNull(firstOrNull())
-            in latest -> listOfNotNull(lastOrNull())
+        fun <T : Any> Iterable<T>.filterByStrategy(strategy: String): Iterable<T> = when {
+            next.any { strategy.contains(it) } && latest.any { strategy.contains(it) } ->
+                listOfNotNull(firstOrNull(), lastOrNull()).distinct()
+            strategy in next -> listOfNotNull(firstOrNull())
+            strategy in latest -> listOfNotNull(lastOrNull())
             else -> this
         }
 
@@ -72,9 +74,11 @@ interface Module : (File) -> List<Operation> {
          * If [strategy] is "latest", takes the last element.
          * Otherwise, it returns the list as-is
          */
-        fun <T : Any> Sequence<T>.filterByStrategy(strategy: String): Sequence<T> = when (strategy) {
-            in next -> sequenceOf(firstOrNull()).filterNotNull()
-            in latest -> sequenceOf(lastOrNull()).filterNotNull()
+        fun <T : Any> Sequence<T>.filterByStrategy(strategy: String): Sequence<T> = when {
+            next.any { strategy.contains(it) } && latest.any { strategy.contains(it) } ->
+                sequenceOf(firstOrNull(), lastOrNull()).distinct().filterNotNull()
+            strategy in next -> sequenceOf(firstOrNull()).filterNotNull()
+            strategy in latest -> sequenceOf(lastOrNull()).filterNotNull()
             else -> this
         }
     }
