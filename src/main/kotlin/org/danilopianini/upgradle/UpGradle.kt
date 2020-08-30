@@ -25,6 +25,7 @@ import org.danilopianini.upgradle.remote.Selector
 import org.danilopianini.upgradle.remote.graphql.FuelGithubClient
 import org.eclipse.egit.github.core.client.RequestException
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.ListBranchCommand
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.slf4j.LoggerFactory
@@ -41,7 +42,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         val destination = createTempDir(workdirPrefix)
         logger.info("Working inside ${destination.absolutePath}")
         val git = repository.clone(branch, destination, credentials)
-        val branches = git.branchList().call().map { it.name }
+        val branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map { it.name }
         logger.info("Available branches: $branches")
         module(destination)
             .asSequence()
