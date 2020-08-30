@@ -103,11 +103,9 @@ tasks.withType<Jar> {
     }
 }
 
-tasks.dokkaJavadoc.configure {
-    outputDirectory = "$buildDir/docs/javadoc"
-}
 tasks.withType<JavadocJar> {
     dependsOn(tasks.dokkaJavadoc)
+    from(tasks.dokkaJavadoc.get().outputDirectory)
 }
 
 val githubToken: String? by project
