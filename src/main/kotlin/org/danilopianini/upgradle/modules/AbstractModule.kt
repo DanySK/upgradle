@@ -34,6 +34,12 @@ abstract class AbstractModule(options: Map<String, Any> = emptyMap()) : Module {
     private val includesNext = next.isASelectedStrategy
     private val includesLatest = latest.isASelectedStrategy
 
+    init {
+        require(includesAll || includesNext || includesLatest) {
+            "Inconsistent configuration for ${this::class.simpleName}, no version can be selected with options $options"
+        }
+    }
+
     /**
      * Applies a filtering [strategy] to a sequence.
      * If [strategy] is "next", takes the first element.
