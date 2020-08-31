@@ -106,12 +106,13 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
             }
         } else {
             logger.error("One process has timed out")
-            process.destroy()
-            if (!process.waitFor(1L, TimeUnit.SECONDS)) {
-                logger.error("One process refused to terminate after timeout, destroying forcibly")
-                process.destroyForcibly()
+            ProcessOutcome.TimeOut(process).also {
+                process.destroy()
+                if (!process.waitFor(1L, TimeUnit.SECONDS)) {
+                    logger.error("One process refused to terminate after timeout, destroying forcibly")
+                    process.destroyForcibly()
+                }
             }
-            ProcessOutcome.TimeOut(process)
         }
     }
 
@@ -122,7 +123,7 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
         private const val extractVersions =
             """\s*##\s*# available=(\S+)\R?"""
         private const val extractUpdates =
-            """\s*((?:version|plugin)\.(?:.*\.)?([a-zA-Z].*))=(\S+)\R(\s*##\s*# available=(?:\S+)\R?)+"""
+            """\s*((?:version|plugin)\.(?:.*\.)?([a-zA-Z].*))=(\S+)\R((?:\s*##\s*# available=(?:\S+)\R?)+)"""
         internal val extractUpdatesRegex = Regex(extractUpdates)
         internal val extractVersionsRegex = Regex(extractVersions)
         private val isWindows = System.getProperty("os.name").contains("windows", ignoreCase = true)

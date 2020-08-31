@@ -9,67 +9,79 @@ typealias NewVersions = List<String>
 typealias MatchResult = Triple<Artifacts, OldVersions, NewVersions>
 
 class TestRefreshVersions : FreeSpec({
-    "refreshversions should" - {
-        "extract correctly" - {
+    "refreshversions should extract correctly" - {
+        "entries with a space" - {
+            testEqualityOf(
+                """
+                 version.konf=6.0.0
+                ### available=1.2.3.4
+                """.trimIndent(),
+                artifact = "konf",
+                oldVersion = "6.0.0",
+                newVersion = "1.2.3.4"
+            )
+        }
 
-            "entries with a space" - {
-                testEqualityOf(
-                    """
-                     version.konf=6.0.0
-                    ### available=1.2.3.4
-                    """.trimIndent(),
-                    artifact = "konf",
-                    oldVersion = "6.0.0",
-                    newVersion = "1.2.3.4"
-                )
-            }
+        "multiple entries" - {
+            testEqualityOf(
+                """
+                plugin.com.dorongold.task-tree=1.5
+                ##                 # available=1.2.3.4
+                
+                plugin.com.eden.orchidPlugin=version.orchid
 
-            "multiple entries" - {
-                testEqualityOf(
-                    """
-                    plugin.com.dorongold.task-tree=1.5
-                    ##                 # available=1.2.3.4
-                    
-                    plugin.com.eden.orchidPlugin=version.orchid
+                plugin.com.github.johnrengelman.shadow=6.0.0
+                ##                         # available=1.2.3.4
+                
+                plugin.com.github.maiflai.scalatest=0.26
+                ##                      # available=1.2.3.4                            
+                """.trimIndent(),
+                listOf("task-tree", "shadow", "scalatest"),
+                listOf("1.5", "6.0.0", "0.26"),
+                (0..2).map { "1.2.3.4" }
+            )
+        }
 
-                    plugin.com.github.johnrengelman.shadow=6.0.0
-                    ##                         # available=1.2.3.4
-                    
-                    plugin.com.github.maiflai.scalatest=0.26
-                    ##                      # available=1.2.3.4                            
-                    """.trimIndent(),
-                    listOf("task-tree", "shadow", "scalatest"),
-                    listOf("1.5", "6.0.0", "0.26"),
-                    (0..2).map { "1.2.3.4" }
-                )
-            }
+        "scala artifacts" - {
+            testEqualityOf(
+                """
+                version.org.scalatest..scalatest_2.13=3.3.0-SNAP2
+                ##                        # available=1.2.3.4
+                """.trimIndent(),
+                "scalatest_2.13",
+                "3.3.0-SNAP2",
+                "1.2.3.4"
+            )
+        }
 
-            "scala artifacts" - {
-                testEqualityOf(
-                    """
-                    version.org.scalatest..scalatest_2.13=3.3.0-SNAP2
-                    ##                        # available=1.2.3.4
-                    """.trimIndent(),
-                    "scalatest_2.13",
-                    "3.3.0-SNAP2",
-                    "1.2.3.4"
-                )
-            }
+        "shortened entries" - {
+            testEqualityOf(
+                """
+                    version.protelis=13.3.9
+                    ##   # available=1.2.3.4
 
-            "shortened entries" - {
-                testEqualityOf(
-                    """
-                        version.protelis=13.3.9
-                        ##   # available=1.2.3.4
-    
-                        version.scalacache=0.28.0
-                        ##     # available=1.2.3.4
-                    """.trimIndent(),
-                    listOf("protelis", "scalacache"),
-                    listOf("13.3.9", "0.28.0"),
-                    (0..1).map { "1.2.3.4" }
-                )
-            }
+                    version.scalacache=0.28.0
+                    ##     # available=1.2.3.4
+                """.trimIndent(),
+                listOf("protelis", "scalacache"),
+                listOf("13.3.9", "0.28.0"),
+                (0..1).map { "1.2.3.4" }
+            )
+        }
+
+        "multiple versions" - {
+            extractFrom(
+                """
+                version.protelis=13.3.9
+                ##   # available=1.2.3.4
+                ##   # available=1.2.3.5
+                ##   # available=1.2.3.6
+
+                version.scalacache=0.28.0
+                ##     # available=1.2.3.4
+                ##     # available=1.2.3.5
+                """.trimIndent()
+            ).size shouldBe 5
         }
     }
 }) {
@@ -77,10 +89,10 @@ class TestRefreshVersions : FreeSpec({
 
         fun extractFrom(fileContent: String) = RefreshVersions.extractUpdatesRegex
             .findAll(fileContent)
-            .flatMap {
-                val updateInfo = it.destructured.toList().subList(1, 4)
-                RefreshVersions.extractVersionsRegex.findAll(updateInfo[2])
-                    .map { updateInfo.subList(0, 2) + listOf(it.destructured.component1()) }
+            .flatMap { matchResult ->
+                val (_, artifact, oldVersion, newVersions) = matchResult.destructured
+                RefreshVersions.extractVersionsRegex.findAll(newVersions)
+                    .map { listOf(artifact, oldVersion, it.destructured.component1()) }
             }
             .toList()
 
