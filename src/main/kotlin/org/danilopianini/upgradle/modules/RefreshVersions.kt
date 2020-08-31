@@ -60,7 +60,6 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
     }
 
     private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
-
         val versionsContent = versionsFile.readText()
         val dependenciesWithUpdates = extractUpdatesRegex.findAll(versionsContent)
         if (dependenciesWithUpdates.isEmpty()) {
