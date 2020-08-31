@@ -1,17 +1,22 @@
 package org.danilopianini.upgradle.modules
 
 import arrow.core.extensions.sequence.foldable.isEmpty
+import org.apache.commons.io.IOUtils
 import org.danilopianini.upgradle.api.Module.ListExtensions.filterByStrategy
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeUnit
 
 class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
 
     private val strategy: String by options.withDefault { "next" }
     private val versionRegex: String by options.withDefault { ".*" }
+    private val timeoutInMinutes: Long by options.withDefault { defaultWaitTime }
     private val validVersionRegex = versionRegex.toRegex()
 
     override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
@@ -25,7 +30,25 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
                 logger.info("Running refreshVersions")
                 return when (val refresh = runRefresh(projectRoot)) {
                     is ProcessOutcome.Error -> {
-                        logger.error("Could not refresh versions, process ended with error ${refresh.code}.")
+                        logger.error(
+                            """
+                            |
+                            |Could not refresh versions in ${projectRoot.path}, process exited with ${refresh.code}.
+                            |
+                            |${refresh.describeOutput}
+                            |""".trimMargin()
+                        )
+                        emptyList()
+                    }
+                    is ProcessOutcome.TimeOut -> {
+                        logger.error(
+                            """
+                            |
+                            |RefreshVersions timed out on ${projectRoot.path}.
+                            |
+                            |${refresh.describeOutput}
+                            |""".trimMargin()
+                        )
                         emptyList()
                     }
                     is ProcessOutcome.Ok -> prepareUpdates(projectId, versionsFile, originalVersions)
@@ -76,9 +99,24 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
         }.toList()
     }
 
+    private fun runRefresh(projectRoot: File): ProcessOutcome {
+        val process = ProcessBuilder(listOf(gradleCommand, taskName))
+            .directory(projectRoot)
+            .start()
+        return if (process.waitFor(timeoutInMinutes, TimeUnit.MINUTES)) {
+            when (process.exitValue()) {
+                0 -> ProcessOutcome.Ok
+                else -> ProcessOutcome.Error(process)
+            }
+        } else {
+            ProcessOutcome.TimeOut(process)
+        }
+    }
+
     companion object {
         private const val versionFileName = "versions.properties"
         private const val taskName = "refreshVersions"
+        private const val defaultWaitTime = 5L
         private const val extractVersions =
             """\s*##\s*# available=(\S+)\R?"""
         private const val extractUpdates =
@@ -89,18 +127,27 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
         private val isWindows = System.getProperty("os.name").contains("windows", ignoreCase = true)
         private val executable = "gradlew${ ".bat".takeIf { isWindows } ?: "" }"
         private val gradleCommand = "${"./".takeUnless { isWindows } ?: ""}$executable"
-
-        private fun runRefresh(projectRoot: File): ProcessOutcome = ProcessBuilder(listOf(gradleCommand, taskName))
-            .directory(projectRoot)
-//            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            .redirectError(ProcessBuilder.Redirect.INHERIT)
-            .start()
-            .waitFor()
-            .let { if (it == 0) ProcessOutcome.Ok else ProcessOutcome.Error(it) }
     }
 
-    private sealed class ProcessOutcome {
+    private sealed class ProcessOutcome(val output: String = "", val error: String = "") {
+
+        val describeOutput get() =
+            """
+            |Process output:
+            |$output
+            |
+            |Process error:
+            |$error
+            """.trimMargin()
+
         object Ok : ProcessOutcome()
-        class Error(val code: Int) : ProcessOutcome()
+        class Error(process: Process) : ProcessOutcome(process.inputStream.asString(), process.errorStream.asString()) {
+            val code = process.exitValue()
+        }
+        class TimeOut(process: Process) : ProcessOutcome(process.inputStream.asString(), process.errorStream.asString())
+
+        companion object {
+            private fun InputStream.asString() = IOUtils.toString(this, StandardCharsets.UTF_8)
+        }
     }
 }

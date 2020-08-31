@@ -20,10 +20,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://repo.eclipse.org/content/repositories/egit-releases/")
-        content { includeGroup("org.eclipse.mylyn.github") }
-    }
     jcenter {
         content {
             onlyForConfigurations(
@@ -32,6 +28,10 @@ repositories {
                 "dokkaJavadocRuntime"
             )
         }
+    }
+    maven {
+        url = uri("https://repo.eclipse.org/content/repositories/egit-releases/")
+        content { includeGroup("org.eclipse.mylyn.github") }
     }
 }
 
@@ -45,10 +45,11 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel:_")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:_")
     implementation("com.github.kittinunf.fuel:fuel-gson:_")
-    implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
+    implementation("commons-io:commons-io:_")
     implementation("com.uchuhimo:konf:_")
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
+    implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
     implementation(kotlin("stdlib-jdk8"))
 
     // Temporary workaround for kittinunf/fuel#757

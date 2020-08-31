@@ -5,3 +5,4 @@ build/
 myrc
 out/
 gh_token
+GITHUB_TOKEN
