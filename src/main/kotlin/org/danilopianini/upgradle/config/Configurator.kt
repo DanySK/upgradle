@@ -57,7 +57,7 @@ class ColoredLabel : Label() {
 
 data class CommitAuthor(val name: String = "UpGradle [Bot]", val email: String = "<>")
 
-typealias ModuleOptions = Map<String, String>
+typealias ModuleOptions = Map<String, Any>
 
 data class UpgradleModule(val name: String, val options: ModuleOptions = emptyMap())
 
