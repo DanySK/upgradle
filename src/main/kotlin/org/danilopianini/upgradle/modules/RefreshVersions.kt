@@ -28,31 +28,33 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
             if (execFile?.exists() == true) {
                 val originalVersions = versionsFile.readText()
                 logger.info("Running refreshVersions")
-                return when (val refresh = runRefresh(projectRoot)) {
+                when (val refresh = runRefresh(projectRoot)) {
                     is ProcessOutcome.Error -> {
                         logger.error(
                             """
                             |
                             |Could not refresh versions in ${projectRoot.path}, process exited with ${refresh.code}.
+                            |UpGradle will attempt to generate updates anyway, but you should get this fixed.
                             |
                             |${refresh.describeOutput}
                             |""".trimMargin()
                         )
-                        emptyList()
                     }
                     is ProcessOutcome.TimeOut -> {
                         logger.error(
                             """
                             |
                             |RefreshVersions timed out on ${projectRoot.path}.
+                            |UpGradle will attempt to generate updates anyway
+                            |(maybe the time was sufficient for refreshVersion to run).
                             |
                             |${refresh.describeOutput}
                             |""".trimMargin()
                         )
-                        emptyList()
                     }
-                    is ProcessOutcome.Ok -> prepareUpdates(projectId, versionsFile, originalVersions)
+                    is ProcessOutcome.Ok -> logger.info("Version refresh successful. Extracting available updates")
                 }
+                return prepareUpdates(projectId, versionsFile, originalVersions)
             } else {
                 logger.warn("No {} file available in {}", execFile, projectRoot.absolutePath)
             }
@@ -63,7 +65,7 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
     }
 
     private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
-        logger.info("Version refresh successful. Extracting available updates")
+
         val versionsContent = versionsFile.readText()
         val dependenciesWithUpdates = extractUpdatesRegex.findAll(versionsContent)
         if (dependenciesWithUpdates.isEmpty()) {
