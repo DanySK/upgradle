@@ -26,9 +26,11 @@ repositories {
     }
     jcenter {
         content {
-            includeGroup("com.soywiz.korlibs.korte")
-            includeGroup("org.jetbrains") // for markdown
-            includeGroupByRegex("""org\.jetbrains\.(kotlinx|dokka)""")
+            onlyForConfigurations(
+                "detekt",
+                "dokkaJavadocPlugin",
+                "dokkaJavadocRuntime"
+            )
         }
     }
 }
