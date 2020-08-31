@@ -11,6 +11,7 @@ import java.io.File
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
 
@@ -102,15 +103,23 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule() {
     }
 
     private fun runRefresh(projectRoot: File): ProcessOutcome {
-        val process = ProcessBuilder(listOf(gradleCommand, taskName))
+        val process = ProcessBuilder(listOf(gradleCommand, "--console=plain", taskName))
             .directory(projectRoot)
             .start()
-        return if (process.waitFor(timeoutInMinutes, TimeUnit.MINUTES)) {
-            when (process.exitValue()) {
+        return try {
+            when (process.onExit().get(timeoutInMinutes, TimeUnit.MINUTES).exitValue()) {
                 0 -> ProcessOutcome.Ok
                 else -> ProcessOutcome.Error(process)
             }
-        } else {
+        } catch (timeOut: TimeoutException) {
+            logger.error("One process has timed out", timeOut)
+            process.destroy()
+            try {
+                process.onExit().get(1L, TimeUnit.SECONDS)
+            } catch (unkillableTimeOut: TimeoutException) {
+                logger.error("One process refused to terminate after timeout, destroying forcibly", unkillableTimeOut)
+                process.destroyForcibly()
+            }
             ProcessOutcome.TimeOut(process)
         }
     }
