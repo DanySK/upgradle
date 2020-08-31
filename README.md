@@ -80,6 +80,7 @@ can identify a list of possible update `Operation`s to apply, and how to apply t
 
 This program expects a configuration in form of a YAML, JSON, or TOML file.
 In the remainder, the former will be used.
+The documentation refers to the latest stable version.
 
 ### Available options
 
@@ -107,9 +108,53 @@ that will get interpreted as regular expressions.
 
 ### Module selection
 
-`modules` expects a list of strings.
-Each string must be a valid UpGradle module, namely, a subclass of `org.danilopianini.upgradle.Module`
-available in the classpath.
+`modules` expects a list of modules entry.
+Each entry must contain:
+* `name`: the name of the module
+(its implementing class, namely, a subclass of `org.danilopianini.upgradle.Module` available in the classpath).
+* (optional) `options`: an object containing the options for the module
+
+#### Available module: GradleWrapper
+
+The `GradleWrapper` module fetches for the latest version of the gradle wrapper.
+To be considered, the project must be a valid gradle project with a wrapper.
+
+##### Options
+* `versionRegex`, *defaults to `.*`*: only versions matching the regex will be considered.
+For instance, only version 6.x of Gradle should be considered, `versionRegex: '6(\.\d+)*'` could be specified.
+* `strategy`, *defaults to `latest`*: filters versions for which an update pull request will be created.
+Possible values are `latest` (only consider the latest version),
+`next` (only consider the next incremental version),
+and `all` (consider all versions).
+Multiple strategies can be combined using a list, so e.g.,
+if `[next, latest]` is specified and there are at least two different versions that are valid candidates for an update,
+two pull requests will be generated.
+Strategies are applied *after* `versionRegex`, so it is quite easy to build strategies such as
+"filter out non-stable versions, then propose both an incremental and and an update to the latest version."
+
+#### Available module: RefreshVersions
+
+##### Options
+* `versionRegex`, *defaults to `.*`*. Only versions matching the regex will be considered.
+For instance, say that you expect only stable versions to be considered, filtering out release candidates,
+alphas, betas, etc. A valid version in the example is a sequence of digits split by dots, which might begin with `v`.
+In this case, the user can specify `versionRegex: 'v?\d+(\.\d+)*'`
+* `strategy`, *defaults to `latest`*. Filters versions for which an update pull request will be created.
+Possible values are `latest` (only consider the latest version),
+`next` (only consider the next incremental version),
+and `all` (consider all versions).
+Multiple strategies can be combined using a list, so e.g.,
+if `[next, latest]` is specified and there are at least two different versions that are valid candidates for an update,
+two pull requests will be generated.
+Strategies are applied *after* `versionRegex`, so it is quite easy to build strategies such as
+"filter out non-stable versions, then propose both an incremental and and an update to the latest version."
+* `timeoutInMinutes` *defaults to `5`.
+The maximum time Upgradle will wait for its Gradle child process to complete the execution of the refreshVersion task
+before inspecting the result.
+In normal conditions, the process will terminate (successfully or not) well before five minutes,
+so the timer is not very important.
+However, it can be very useful to workaround [this Gradle bug](https://github.com/gradle/gradle/issues/14347),
+causing the Gradle update to freeze.
 
 ### Labeling the pull requests
 
@@ -137,6 +182,29 @@ N.B. The author of the pull-request only depends on the owner of the `GITHUB_TOK
 
 A working example is provided in [this repository](https://github.com/DanySK/upgradle-bot),
 which relies on a Travis CI instance to perform the work.
+
+A possible simple configuration is:
+```yaml
+includes:
+  - owners: .*
+    repos: .*
+    branches:
+      - master
+modules:
+  - name: GradleWrapper
+    options:
+      # Strategies "all", "next" "latest"
+      strategy: next
+      versionRegex: \d+(\.\d+)*
+  - name: RefreshVersions
+    options:
+      # Strategies "all", "next" "latest"
+      strategy:
+        - next
+        - latest
+      versionRegex: v?\d+(\.\d+)*
+
+```
 
 ### Default configuration
 
