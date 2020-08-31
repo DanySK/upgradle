@@ -1,23 +1,17 @@
 package org.danilopianini.upgradle.modules
 
 import org.danilopianini.upgradle.CachedFor
-import org.danilopianini.upgradle.api.Module.ListExtensions.filterByStrategy
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
 import org.danilopianini.upgradle.modules.GradleVersion.Companion.asGradleVersion
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
 import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
 @ExperimentalTime
-class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
-
-    private val strategy: String by options.withDefault { "next" }
-    private val versionRegex: String by options.withDefault { ".*" }
-    private val versionMatch = versionRegex.toRegex()
+class GradleWrapper(options: Map<String, Any>) : GradleRootModule(options) {
 
     override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val properties = projectRoot.gradleWrapperProperties
@@ -29,7 +23,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
                 logger.info("Detected Gradle $localGradleVersion")
                 val nextGradle = gradleVersions
                     .filter { it > localGradleVersion && versionMatch.matches(it.downloadReference) }
-                    .filterByStrategy(strategy)
+                    .filterByStrategy()
                 if (nextGradle.iterator().hasNext()) {
                     logger.info("Gradle can be updated to: {}", nextGradle)
                 } else {
@@ -48,7 +42,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
                         projectRoot.gradleWrapperProperties.writeText(newProperties)
                         listOf(OnFile(projectRoot.gradleWrapperProperties))
                     }
-                }
+                }.toList()
             } else {
                 logger.warn("Unable to extract gradle version from ${properties.absolutePath}:\n$oldProperties")
             }
@@ -59,11 +53,10 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
     }
     companion object {
 
-        private val logger = LoggerFactory.getLogger(GradleWrapper::class.java)
         private val versionExtractor = Regex("""gradle-${GradleVersion.distVersionRegex}-bin\.zip""")
         private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
-        val gradleVersions: List<GradleVersion> by CachedFor(1.hours) {
+        val gradleVersions: Sequence<GradleVersion> by CachedFor(1.hours) {
             val response = URL("https://services.gradle.org/distributions/").readText()
             versionExtractor.findAll(response)
                 .map {
@@ -72,7 +65,6 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule() {
                 }
                 .distinct()
                 .sortedDescending()
-                .toList()
         }
     }
 }
@@ -109,7 +101,7 @@ data class GradleVersion(
     companion object {
 
         val distVersionRegex = Regex("""(\d+)\.(\d+)(\.(\d+))?(-rc-(\d*))?""")
-        val ghRegex = Regex("""(\d+)\.(\d+)(\.(\d+))?( RC(\d+))?""")
+        private val ghRegex = Regex("""(\d+)\.(\d+)(\.(\d+))?( RC(\d+))?""")
 
         fun fromGithubRelease(tagName: String): GradleVersion? = ghRegex.extract(tagName)
 

@@ -1,10 +1,9 @@
 package org.danilopianini.upgradle.modules
 
-import org.danilopianini.upgradle.api.Module
 import org.danilopianini.upgradle.api.Operation
 import java.io.File
 
-abstract class GradleRootModule : Module {
+abstract class GradleRootModule(options: Map<String, Any> = emptyMap()) : AbstractModule(options) {
 
     protected val File.isGradleProject
         get() = listFiles()

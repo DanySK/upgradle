@@ -1,7 +1,7 @@
 package org.danilopianini.upgradle.modules
 
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.sequences.shouldContain
 import io.kotest.matchers.shouldNotBe
 import kotlin.time.ExperimentalTime
 

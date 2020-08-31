@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.danilopianini.upgradle.api.Credentials
 import org.danilopianini.upgradle.api.Module
-import org.danilopianini.upgradle.api.Module.StringExtensions.asModule
+import org.danilopianini.upgradle.api.Module.Companion.asModule
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.config.Configurator
 import org.danilopianini.upgradle.remote.Branch
