@@ -51,8 +51,8 @@ abstract class AbstractModule(options: Map<String, Any> = emptyMap()) : Module {
             this
         } else {
             sequenceOf(
+                this.lastOrNull()?.takeIf { latest.isASelectedStrategy },
                 this.firstOrNull()?.takeIf { next.isASelectedStrategy },
-                this.lastOrNull()?.takeIf { latest.isASelectedStrategy }
             ).filterNotNull().distinct()
         }
 

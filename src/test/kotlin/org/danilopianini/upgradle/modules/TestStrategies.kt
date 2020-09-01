@@ -1,6 +1,7 @@
 package org.danilopianini.upgradle.modules
 
 import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import java.io.File
 
@@ -39,6 +40,6 @@ class TestStrategies : FreeSpec({
         Next whenMatching versions shouldBe oldest
     }
     "hybrid should match newest and oldest" {
-        NextAndLatest whenMatching versions shouldBe oldest + newest
+        NextAndLatest whenMatching versions shouldContainExactlyInAnyOrder oldest + newest
     }
 })
