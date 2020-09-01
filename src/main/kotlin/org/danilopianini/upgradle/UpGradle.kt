@@ -44,13 +44,14 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         val git = repository.clone(branch, destination, credentials)
         val branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map { it.name }
         logger.info("Available branches: $branches")
+        // Run the module
         module(destination)
+            .asReversed()
             .asSequence()
             .filter { proposedUpdate -> branches.none { it.endsWith(proposedUpdate.branch) } }
             .forEach { update ->
                 prepareRepository(git, branch, update)
                 // Run the update operation
-                logger.info("Running update...")
                 val changes = update()
                 logger.info("Changes: {}", changes)
                 git.add(destination, changes)
