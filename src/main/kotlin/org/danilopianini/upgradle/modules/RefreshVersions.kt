@@ -8,6 +8,8 @@ import org.danilopianini.upgradle.api.SimpleOperation
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.TimeUnit
 
 class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
@@ -21,6 +23,15 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
         if (versionsFile?.exists() == true) {
             val execFile = filesInRoot.find { it.name == executable }
             if (execFile?.exists() == true) {
+                // If under *nix, make gradlew executable
+                try {
+                    val originalPermissions = Files.getPosixFilePermissions(execFile.toPath())
+                    if (executeRights !in originalPermissions) {
+                        Files.setPosixFilePermissions(execFile.toPath(), originalPermissions + executeRights)
+                    }
+                } catch (unsupported: UnsupportedOperationException) {
+                    logger.warn("The local file system does not support Unix permissions")
+                }
                 val originalVersions = versionsFile.readText()
                 logger.info("Running refreshVersions")
                 when (val refresh = runRefresh(projectRoot)) {
@@ -59,7 +70,7 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
         return emptyList()
     }
 
-    private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
+    internal fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
         val versionsContent = versionsFile.readText()
         val dependenciesWithUpdates = extractUpdatesRegex.findAll(versionsContent)
         if (dependenciesWithUpdates.isEmpty()) {
@@ -129,6 +140,9 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
         private val isWindows = System.getProperty("os.name").contains("windows", ignoreCase = true)
         private val executable = "gradlew${ ".bat".takeIf { isWindows } ?: "" }"
         private val gradleCommand = "${"./".takeUnless { isWindows } ?: ""}$executable"
+        private val executeRights: Set<PosixFilePermission> = PosixFilePermission.values()
+            .filter { it.name.endsWith("execute", ignoreCase = true) }
+            .toSet()
     }
 
     private sealed class ProcessOutcome(val output: String = "", val error: String = "") {

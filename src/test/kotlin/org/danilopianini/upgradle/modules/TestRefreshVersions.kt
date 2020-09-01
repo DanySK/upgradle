@@ -2,6 +2,7 @@ package org.danilopianini.upgradle.modules
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import java.io.File
 
 typealias Artifacts = List<String>
 typealias OldVersions = List<String>
@@ -9,79 +10,92 @@ typealias NewVersions = List<String>
 typealias MatchResult = Triple<Artifacts, OldVersions, NewVersions>
 
 class TestRefreshVersions : FreeSpec({
-    "refreshversions should extract correctly" - {
-        "entries with a space" - {
-            testEqualityOf(
-                """
-                 version.konf=6.0.0
-                ### available=1.2.3.4
-                """.trimIndent(),
-                artifact = "konf",
-                oldVersion = "6.0.0",
-                newVersion = "1.2.3.4"
-            )
-        }
+    "refreshversions should" - {
+        "extract correctly" - {
+            "entries with a space" {
+                testEqualityOf(
+                    """
+                     version.konf=6.0.0
+                    ### available=1.2.3.4
+                    """.trimIndent(),
+                    artifact = "konf",
+                    oldVersion = "6.0.0",
+                    newVersion = "1.2.3.4"
+                )
+            }
 
-        "multiple entries" - {
-            testEqualityOf(
-                """
-                plugin.com.dorongold.task-tree=1.5
-                ##                 # available=1.2.3.4
-                
-                plugin.com.eden.orchidPlugin=version.orchid
+            "multiple entries" {
+                testEqualityOf(
+                    """
+                    plugin.com.dorongold.task-tree=1.5
+                    ##                 # available=1.2.3.4
+                    
+                    plugin.com.eden.orchidPlugin=version.orchid
+    
+                    plugin.com.github.johnrengelman.shadow=6.0.0
+                    ##                         # available=1.2.3.4
+                    
+                    plugin.com.github.maiflai.scalatest=0.26
+                    ##                      # available=1.2.3.4                            
+                    """.trimIndent(),
+                    listOf("task-tree", "shadow", "scalatest"),
+                    listOf("1.5", "6.0.0", "0.26"),
+                    (0..2).map { "1.2.3.4" }
+                )
+            }
 
-                plugin.com.github.johnrengelman.shadow=6.0.0
-                ##                         # available=1.2.3.4
-                
-                plugin.com.github.maiflai.scalatest=0.26
-                ##                      # available=1.2.3.4                            
-                """.trimIndent(),
-                listOf("task-tree", "shadow", "scalatest"),
-                listOf("1.5", "6.0.0", "0.26"),
-                (0..2).map { "1.2.3.4" }
-            )
-        }
+            "scala artifacts" {
+                testEqualityOf(
+                    """
+                    version.org.scalatest..scalatest_2.13=3.3.0-SNAP2
+                    ##                        # available=1.2.3.4
+                    """.trimIndent(),
+                    "scalatest_2.13",
+                    "3.3.0-SNAP2",
+                    "1.2.3.4"
+                )
+            }
 
-        "scala artifacts" - {
-            testEqualityOf(
-                """
-                version.org.scalatest..scalatest_2.13=3.3.0-SNAP2
-                ##                        # available=1.2.3.4
-                """.trimIndent(),
-                "scalatest_2.13",
-                "3.3.0-SNAP2",
-                "1.2.3.4"
-            )
-        }
+            "shortened entries" {
+                testEqualityOf(
+                    """
+                        version.protelis=13.3.9
+                        ##   # available=1.2.3.4
+    
+                        version.scalacache=0.28.0
+                        ##     # available=1.2.3.4
+                    """.trimIndent(),
+                    listOf("protelis", "scalacache"),
+                    listOf("13.3.9", "0.28.0"),
+                    (0..1).map { "1.2.3.4" }
+                )
+            }
 
-        "shortened entries" - {
-            testEqualityOf(
-                """
+            "multiple versions" {
+                extractFrom(
+                    """
                     version.protelis=13.3.9
                     ##   # available=1.2.3.4
-
+                    ##   # available=1.2.3.5
+                    ##   # available=1.2.3.6
+    
                     version.scalacache=0.28.0
                     ##     # available=1.2.3.4
-                """.trimIndent(),
-                listOf("protelis", "scalacache"),
-                listOf("13.3.9", "0.28.0"),
-                (0..1).map { "1.2.3.4" }
-            )
+                    ##     # available=1.2.3.5
+                    """.trimIndent()
+                ).size shouldBe 5
+            }
         }
-
-        "multiple versions" - {
-            extractFrom(
-                """
-                version.protelis=13.3.9
-                ##   # available=1.2.3.4
-                ##   # available=1.2.3.5
-                ##   # available=1.2.3.6
-
-                version.scalacache=0.28.0
-                ##     # available=1.2.3.4
-                ##     # available=1.2.3.5
-                """.trimIndent()
-            ).size shouldBe 5
+        "provide multiple updates for refreshversions-aliases" {
+            val sourceTestFolder = ClassLoader
+                .getSystemResource("org/danilopianini/upgradle/test/refreshversions-aliases")
+                .file
+            val testFolder = createTempDir("upgradle", "test-refreshversions")
+            File(sourceTestFolder).copyRecursively(testFolder)
+            val entries = 7
+            RefreshVersions(mapOf("strategy" to listOf("next", "latest")))
+                .operationsInProjectRoot(testFolder)
+                .size shouldBe entries * 2
         }
     }
 }) {
