@@ -106,11 +106,6 @@ tasks.withType<Jar> {
     }
 }
 
-tasks.withType<JavadocJar> {
-    dependsOn(tasks.dokkaJavadoc)
-    from(tasks.dokkaJavadoc.get().outputDirectory)
-}
-
 val githubToken: String? by project
 val ghActualToken = githubToken ?: System.getenv("GITHUB_TOKEN")
 val jarTasks = tasks.withType<Jar>() + tasks.withType<JavadocJar>() + tasks.withType<SourcesJar>()
