@@ -52,9 +52,6 @@ dependencies {
     implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
     implementation(kotlin("stdlib-jdk8"))
 
-    // Temporary workaround for kittinunf/fuel#757
-    implementation("com.github.kittinunf.result:result:_")
-
     runtimeOnly("ch.qos.logback:logback-classic:_")
 
     testImplementation("io.kotest:kotest-runner-junit5:_")
