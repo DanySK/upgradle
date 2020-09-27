@@ -1,6 +1,12 @@
 package org.danilopianini.upgradle.modules
 
 import arrow.core.extensions.sequence.foldable.isEmpty
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 import org.apache.commons.io.IOUtils
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
@@ -10,6 +16,8 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
 class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
@@ -106,23 +114,31 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
         }.toList()
     }
 
+    @ExperimentalCoroutinesApi
     private fun runRefresh(projectRoot: File): ProcessOutcome {
         val process = ProcessBuilder(listOf(gradleCommand, "--console=plain", taskName))
             .directory(projectRoot)
             .start()
+        val output = GlobalScope.async(Dispatchers.IO) {
+            IOUtils.toString(process.inputStream, StandardCharsets.UTF_8)
+        }
+        val error = GlobalScope.async(Dispatchers.IO) {
+            IOUtils.toString(process.errorStream, StandardCharsets.UTF_8)
+        }
         return if (process.waitFor(timeoutInMinutes, TimeUnit.MINUTES)) {
             when (process.exitValue()) {
                 0 -> ProcessOutcome.Ok
-                else -> ProcessOutcome.Error(process)
+                else -> ProcessOutcome.Error(process, output.getCompleted(), error.getCompleted())
             }
         } else {
             logger.error("One process has timed out")
-            ProcessOutcome.TimeOut(process).also {
-                process.destroy()
-                if (!process.waitFor(1L, TimeUnit.SECONDS)) {
-                    logger.error("One process refused to terminate after timeout, destroying forcibly")
-                    process.destroyForcibly()
-                }
+            process.destroy()
+            if (!process.waitFor(1L, TimeUnit.SECONDS)) {
+                logger.error("One process refused to terminate after timeout, destroying forcibly")
+                process.destroyForcibly()
+                ProcessOutcome.TimeOut()
+            } else {
+                ProcessOutcome.TimeOut(output.getCompleted(), error.getCompleted())
             }
         }
     }
@@ -157,13 +173,14 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
             """.trimMargin()
 
         object Ok : ProcessOutcome()
-        class Error(process: Process) : ProcessOutcome(process.inputStream.asString(), process.errorStream.asString()) {
+
+        class Error(val process: Process, output: String, error: String) : ProcessOutcome(output, error) {
             val code = process.exitValue()
         }
-        class TimeOut(process: Process) : ProcessOutcome(process.inputStream.asString(), process.errorStream.asString())
 
-        companion object {
-            private fun InputStream.asString() = IOUtils.toString(this, StandardCharsets.UTF_8)
-        }
+        class TimeOut(
+            output: String = "Unable to fetch output: forcibly terminated",
+            error: String = output
+        ) : ProcessOutcome(output, error)
     }
 }
