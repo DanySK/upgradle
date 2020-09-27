@@ -116,7 +116,7 @@ Each entry must contain:
 
 #### Available module: GradleWrapper
 
-The `GradleWrapper` module fetches for the latest version of the gradle wrapper.
+The `GradleWrapper` module fetches updates for the gradle wrapper.
 To be considered, the project must be a valid gradle project with a wrapper.
 
 ##### Options
@@ -133,6 +133,9 @@ Strategies are applied *after* `versionRegex`, so it is quite easy to build stra
 "filter out non-stable versions, then propose both an incremental and and an update to the latest version."
 
 #### Available module: RefreshVersions
+
+The `GradleWrapper` module fetches updates for Gradle projects using refreshVersions.
+For the updates to be proposed, a valid `versions.properties` file should be present in the repository.
 
 ##### Options
 * `versionRegex`, *defaults to `.*`*. Only versions matching the regex will be considered.
@@ -155,6 +158,23 @@ In normal conditions, the process will terminate (successfully or not) well befo
 so the timer is not very important.
 However, it can be very useful to workaround [this Gradle bug](https://github.com/gradle/gradle/issues/14347),
 causing the Gradle update to freeze.
+
+#### Available module: TravisDist
+
+The `TravisDist` module updates the `dist` entry on `.travis.yml`.
+For it to work, the file must exist, be a valid YAML, and `dist` must be explicitly specified.
+
+##### Options
+* `versionRegex`, *defaults to `.*`*: only versions matching the regex will be considered.
+* `strategy`, *defaults to `latest`*: filters versions for which an update pull request will be created.
+Possible values are `latest` (only consider the latest version),
+`next` (only consider the next incremental version),
+and `all` (consider all versions).
+Multiple strategies can be combined using a list, so e.g.,
+if `[next, latest]` is specified and there are at least two different versions that are valid candidates for an update,
+two pull requests will be generated.
+Strategies are applied *after* `versionRegex`, so it is quite easy to build strategies such as
+"filter out non-stable versions, then propose both an incremental and and an update to the latest version."
 
 ### Labeling the pull requests
 
