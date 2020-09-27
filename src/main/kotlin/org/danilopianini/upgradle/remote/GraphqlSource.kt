@@ -27,9 +27,9 @@ class GraphqlSource(private val client: GithubGraphqlClient) : BranchSource {
                 client.branchesOf(repo).map { BranchSource.SelectedRemoteBranch(repo, GithubBranch(it)) }
             }
             .filter { branch ->
-                selector.selects(branch).also { if (!it) logger.info("Discarded: $branch") }
+                selector.selects(branch).also { if (!it) logger.debug("Discarded: $branch") }
             }
-            .onEach { logger.info("Selected: $it") }
+            .onEach { logger.debug("Selected: $it") }
     }
 
     private fun RemoteRepository.isWritable() =
