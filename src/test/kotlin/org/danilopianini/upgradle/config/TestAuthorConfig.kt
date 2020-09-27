@@ -5,41 +5,43 @@ import io.kotest.assertions.inspecting
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
-class TestAuthorConfig : FreeSpec({
-    "A loaded configuration" - {
-        fun configOf(s: String): Configuration = Configurator.load { from.yaml.string(s) }
-        val baseConfig =
-            """
-                includes:
-                  - owners: .*
-                    repos: .*
-                    branches:
-                      - master
-                modules:
-                  - name: GradleWrapper
-                    options:
-                        strategy: "all"
-                  - name: RefreshVersions
-            """.trimIndent()
-
-        "should use given author" {
-            val authorNode =
+class TestAuthorConfig : FreeSpec(
+    {
+        "A loaded configuration" - {
+            fun configOf(s: String): Configuration = Configurator.load { from.yaml.string(s) }
+            val baseConfig =
                 """
-                    author:
-                      name: Test McTestface
-                      email: test@example.com
+                    includes:
+                      - owners: .*
+                        repos: .*
+                        branches:
+                          - master
+                    modules:
+                      - name: GradleWrapper
+                        options:
+                            strategy: "all"
+                      - name: RefreshVersions
                 """.trimIndent()
 
-            inspecting(configOf("$baseConfig\n$authorNode").author) {
-                name shouldBe "Test McTestface"
-                email shouldBe "test@example.com"
+            "should use given author" {
+                val authorNode =
+                    """
+                        author:
+                          name: Test McTestface
+                          email: test@example.com
+                    """.trimIndent()
+
+                inspecting(configOf("$baseConfig\n$authorNode").author) {
+                    name shouldBe "Test McTestface"
+                    email shouldBe "test@example.com"
+                }
             }
-        }
-        "should use default if none given" {
-            inspecting(configOf(baseConfig).author) {
-                name shouldBe "UpGradle [Bot]"
-                email shouldBe "<>"
+            "should use default if none given" {
+                inspecting(configOf(baseConfig).author) {
+                    name shouldBe "UpGradle [Bot]"
+                    email shouldBe "<>"
+                }
             }
         }
     }
-})
+)
