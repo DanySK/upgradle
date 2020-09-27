@@ -42,6 +42,7 @@ gitSemVer {
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:_")
 
+    implementation("com.charleskorn.kaml:kaml:_")
     implementation("com.github.kittinunf.fuel:fuel:_")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:_")
     implementation("com.github.kittinunf.fuel:fuel-gson:_")
@@ -50,6 +51,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
     implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
+    implementation("org.yaml:snakeyaml:_")
     implementation(kotlin("stdlib-jdk8"))
 
     runtimeOnly("ch.qos.logback:logback-classic:_")

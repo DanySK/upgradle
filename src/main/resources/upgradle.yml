@@ -16,3 +16,7 @@ modules:
         - next
         - latest
       versionRegex: v?\d+(\.\d+)*
+  - name: TravisDist
+    options:
+      # Strategies "all", "next" "latest"
+      strategy: latest

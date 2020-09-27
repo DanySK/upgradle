@@ -26,20 +26,22 @@ object Latest : ModuleWithStrategy("latest")
 object Next : ModuleWithStrategy("next")
 object NextAndLatest : ModuleWithStrategy("latest", "next")
 
-class TestStrategies : FreeSpec({
-    val oldest = listOf("1")
-    val newest = listOf("3")
-    val versions = oldest + listOf("2") + newest
-    "all should match all versions" {
-        All whenMatching versions shouldBe versions
+class TestStrategies : FreeSpec(
+    {
+        val oldest = listOf("1")
+        val newest = listOf("3")
+        val versions = oldest + listOf("2") + newest
+        "all should match all versions" {
+            All whenMatching versions shouldBe versions
+        }
+        "latest should match last version" {
+            Latest whenMatching versions shouldBe newest
+        }
+        "next should match the oldest version" {
+            Next whenMatching versions shouldBe oldest
+        }
+        "hybrid should match newest and oldest" {
+            NextAndLatest whenMatching versions shouldContainExactlyInAnyOrder oldest + newest
+        }
     }
-    "latest should match last version" {
-        Latest whenMatching versions shouldBe newest
-    }
-    "next should match the oldest version" {
-        Next whenMatching versions shouldBe oldest
-    }
-    "hybrid should match newest and oldest" {
-        NextAndLatest whenMatching versions shouldContainExactlyInAnyOrder oldest + newest
-    }
-})
+)
