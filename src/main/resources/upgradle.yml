@@ -4,18 +4,19 @@ includes:
     branches:
       - master
 modules:
-#  - name: GradleWrapper
-#    options:
-#      # Strategies "all", "next" "latest"
-#      strategy: next
-#      versionRegex: \d+(\.\d+)*
-#  - name: RefreshVersions
-#    options:
-#      # Strategies "all", "next" "latest"
-#      strategy:
-#        - next
-#        - latest
-#      versionRegex: v?\d+(\.\d+)*
+  - name: GradleWrapper
+    options:
+      # Strategies "all", "next" "latest"
+      strategy: next
+      versionRegex: \d+(\.\d+)*
+  - name: RefreshVersions
+    options:
+      # Strategies "all", "next" "latest"
+      strategy:
+        - next
+        - latest
+      versionRegex: v?\d+(\.\d+)*
   - name: TravisDist
     options:
+      # Strategies "all", "next" "latest"
       strategy: latest

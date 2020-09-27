@@ -40,10 +40,10 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
         logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
         val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
         val destination = createTempDir(workdirPrefix)
-        logger.info("Working inside ${destination.absolutePath}")
+        logger.debug("Working inside ${destination.absolutePath}")
         val git = repository.clone(branch, destination, credentials)
         val branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map { it.name }
-        logger.info("Available branches: $branches")
+        logger.debug("Available branches: $branches")
         // Run the module
         module(destination)
             .asReversed()
@@ -53,7 +53,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                 prepareRepository(git, branch, update)
                 // Run the update operation
                 val changes = update()
-                logger.info("Changes: {}", changes)
+                logger.debug("Changes: {}", changes)
                 git.add(destination, changes)
                 // Commit changes
                 git.commit(update.commitMessage, configuration.author)

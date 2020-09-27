@@ -17,33 +17,44 @@ class TravisDist(options: Map<String, Any> = emptyMap()) : AbstractModule(option
         localDirectory.listFiles()
             ?.find { it.name == ".travis.yml" }
             ?.run {
-                val configuration = Yaml().load<Map<String, Any>>(readText())
-                configuration["dist"]
-                    ?.toString()
-                    ?.let {currentDist ->
-                        availableDistributions.takeLastWhile { it != currentDist }
-                            .asSequence()
-                            .filterByStrategy()
-                            .map {
-                                SimpleOperation(
-                                    branch = "bump-travis-dist-to-$it",
-                                    commitMessage = "Update travis 'dist' to $it",
-                                    pullRequestTitle = "Use 'dist: $it' on Travis",
-                                    pullRequestMessage = "Update the Ubuntu version on Travis CI to ${it.capitalize()}"
-                                ) {
-                                    val newConfiguration = configuration + ("dist" to it)
-                                    val newConf = Yaml().dumpAs(newConfiguration, null, DumperOptions.FlowStyle.BLOCK)
-                                    println(readText())
-                                    println("----------------")
-                                    println(newConf)
-                                    println("##################")
-                                    println(newConfiguration)
-                                    listOf(OnFile(this))
-                                }
-                            }
-                            .toList()
+                val travisYmlContent = readText()
+                val configuration = runCatching {
+                    Yaml().load<Map<String, Any>>(travisYmlContent)
+                }.getOrElse {
+                    logger.warn("Invalid YAML file: ${this.path}")
+                    travisYmlContent.lineSequence().forEach(logger::warn)
+                    logger.warn("Exception would have been the following", it)
+                    emptyMap()
                 }
-                ?: emptyList()
+                (configuration[dist] as? String) ?.let { currentDist ->
+                    availableDistributions.takeLastWhile { it != currentDist }
+                        .asSequence()
+                        .filterByStrategy()
+                        .map { newDist ->
+                            SimpleOperation(
+                                branch = "bump-travis-dist-to-$newDist",
+                                commitMessage = "Update travis 'dist' to $newDist",
+                                pullRequestTitle = "Use 'dist: $newDist' on Travis",
+                                pullRequestMessage = "Update the Ubuntu version on Travis CI to ${newDist.capitalize()}"
+                            ) {
+                                currentDist.toRegex().findAll(travisYmlContent)
+                                    .map { travisYmlContent.replaceRange(it.range, newDist) }
+                                    .filter {
+                                        runCatching {
+                                            val newConfig = Yaml().load<Map<String, Any>>(it)
+                                            newConfig[dist] == newDist
+                                        }.getOrElse { false }
+                                    }
+                                    .firstOrNull()
+                                    ?.let {
+                                        writeText(it)
+                                        listOf(OnFile(this))
+                                    }
+                                    ?: emptyList()
+                            }
+                        }
+                        .toList()
+                }
             }
             ?: emptyList()
 
@@ -53,6 +64,7 @@ class TravisDist(options: Map<String, Any> = emptyMap()) : AbstractModule(option
             "https://en.wikipedia.org/wiki/Ubuntu_version_history"
         private const val travisDistRbURL =
             "https://raw.githubusercontent.com/travis-ci/travis-yml/master/lib/travis/yml/schema/def/dist.rb"
+        private const val dist = "dist"
         private val extractVersionFromTravis =
             """value\s*:\s*(\w+)\s*,\s*only\s*:\s*\{\s*os\s*:.*:linux""".toRegex()
         private val extractVersionFromWikipedia =
