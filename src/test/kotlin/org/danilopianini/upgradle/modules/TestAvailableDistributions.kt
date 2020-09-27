@@ -1,7 +1,6 @@
 package org.danilopianini.upgradle.modules
 
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainInOrder
 import kotlin.time.ExperimentalTime
 
