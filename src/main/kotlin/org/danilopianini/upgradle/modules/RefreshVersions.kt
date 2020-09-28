@@ -5,25 +5,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 import org.apache.commons.io.IOUtils
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
 import org.danilopianini.upgradle.api.SimpleOperation
 import java.io.File
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
 class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
 
     private val timeoutInMinutes: Long by options.withDefault { defaultWaitTime }
 
+    @ExperimentalCoroutinesApi
     override fun operationsInProjectRoot(projectRoot: File, projectId: String): List<Operation> {
         val filesInRoot = projectRoot.listFiles()?.filter { it.isFile } ?: emptyList()
         val versionsFile = filesInRoot.find { it.name == versionFileName }
@@ -174,7 +170,7 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
 
         object Ok : ProcessOutcome()
 
-        class Error(val process: Process, output: String, error: String) : ProcessOutcome(output, error) {
+        class Error(process: Process, output: String, error: String) : ProcessOutcome(output, error) {
             val code = process.exitValue()
         }
 
