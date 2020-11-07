@@ -11,7 +11,7 @@ jobs:
   Build:
     strategy:
       matrix:
-        os: [windows, macos, ubuntu]
+        os: [ubuntu, windows, macos]
         jvm_version: [8, 9, 10, 11, 12, 13, 14]
     runs-on: ${{ matrix.os }}-latest
     env:
