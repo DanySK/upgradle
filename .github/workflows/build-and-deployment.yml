@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
       - shell: bash 
-        run: ./gradlew check
+        run: ./gradlew check --parallel
       - if: ${{ matrix.os == 'ubuntu' && matrix.jvm_version == 8 }}
         run: 
           ./gradlew publishMavenCentralPublicationToMavenRepository --parallel
