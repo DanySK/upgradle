@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: automerge
-        uses: "pascalgn/automerge-action@80acb0f883348dcfd0e526288f7d27a12b9333be"
+        uses: "pascalgn/automerge-action@v0.12.0"
         env:
           GITHUB_TOKEN: "${{ secrets.AUTOMERGE_TOKEN }}"
           MERGE_LABELS: "version-upgrade"
