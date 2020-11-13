@@ -118,7 +118,9 @@ if (ghActualToken != null) {
         owner.set("DanySK")
         prerelease { !project.version.toString().matches(Regex("""\d+(\.\d+)*""")) }
         releaseAssets(*jarTasks.map { it.archiveFile }.toTypedArray())
-        body("## CHANGELOG\n${ changelog().call() }")
+        runCatching {
+            body("## CHANGELOG\n${ changelog().call() }")
+        }
         allowUploadToExisting { true }
     }
 }
