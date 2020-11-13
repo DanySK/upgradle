@@ -12,7 +12,11 @@ on:
   check_suite:
     types:
       - completed
-  status: {}
+  status:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
 jobs:
   automerge:
     runs-on: ubuntu-latest
