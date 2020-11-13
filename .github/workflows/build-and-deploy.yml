@@ -11,12 +11,6 @@ jobs:
         os: [windows, macos, ubuntu]
         jvm_version: [8, 11, 14]
     runs-on: ${{ matrix.os }}-latest
-    env:
-      CI: true
-      ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-      ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-      MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
-      MAVEN_CENTRAL_USERNAME: danysk
     steps:
       - uses: actions/setup-java@v1
         with:
@@ -24,15 +18,50 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - shell: bash
-        run: ./gradlew check --parallel
-      - if: ${{ matrix.os == 'ubuntu' && matrix.jvm_version == 8 }}
-        run:
-          ./gradlew publishMavenCentralPublicationToMavenRepository --parallel \
-          || ./gradlew publishMavenCentralPublicationToMavenRepository --parallel \
-          || ./gradlew publishMavenCentralPublicationToMavenRepository --parallel \
-          || ./gradlew publishMavenCentralPublicationToMavenRepository --parallel \
-          || ./gradlew publishMavenCentralPublicationToMavenRepository --parallel
+      - name: Check
+        shell: bash
+        run: |
+          if [ -x 'build.sh' ]
+          then
+            echo 'Detected custom build instructions'
+            ./build.sh
+          elif [ -x 'gradlew' ]
+          then
+            echo 'Detected gradle wrapper, running ./gradlew clean check --parallel'
+            ./gradlew clean check --parallel
+          elif [ -f 'pom.xml' ]
+          then
+            echo 'Detected Maven pom.xml, running mvn clean install'
+            mvn clean install
+          else
+            echo 'No valid configuration detected, failing'
+            exit 1
+          fi
+      - name: Deploy
+        if: ${{ matrix.os == 'ubuntu' && matrix.jvm_version == 8 }}
+        shell: bash
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_CENTRAL_USERNAME: danysk
+        run: |
+          if [ -x 'deploy.sh' ]
+          then
+            echo 'Detected custom deploy instructions'
+            ./deploy.sh
+          elif [ -x 'gradlew' ]
+          then
+            echo 'Detected gradle wrapper, running ./gradlew publish --parallel'
+            ./gradlew publish --parallel
+          elif [ -f 'pom.xml' ]
+          then
+            echo 'Detected Maven pom.xml, running mvn deploy'
+            mvn deploy
+          else
+            echo 'No valid configuration detected, failing'
+            exit 1
+          fi
   CI-Complete:
     needs: Build
     runs-on: ubuntu-latest
