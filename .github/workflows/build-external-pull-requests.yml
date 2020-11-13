@@ -16,4 +16,20 @@ jobs:
           java-version: ${{ matrix.jvm_version }}
       - uses: actions/checkout@v2
       - shell: bash 
-        run: ./gradlew check
+        run: |
+          if [ -x 'build.sh' ]
+          then
+            echo 'Detected custom build instructions'
+            ./build.sh
+          elif [ -x 'gradlew' ]
+          then
+            echo 'Detected gradle wrapper, running ./gradlew clean check --parallel'
+            ./gradlew clean check --parallel
+          elif [ -f 'pom.xml' ]
+          then
+            echo 'Detected Maven pom.xml, running mvn clean install'
+            mvn clean install
+          else
+            echo 'No valid configuration detected, failing'
+            exit 1
+          fi
