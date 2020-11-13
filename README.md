@@ -5,7 +5,7 @@ A bot for one-shot maintenance of multiple GitHub projects, focused on Gradle.
 ## Badges
 
 ### Info
-[![Build Status](https://travis-ci.com/DanySK/upgradle.svg?branch=master)](https://travis-ci.com/DanySK/upgradle)
+[![Build Status](https://github.com/DanySK/upgradle/workflows/CI/badge.svg)](https://github.com/DanySK/upgradle/actions?query=workflow%3ACI)
 ![GitHub](https://img.shields.io/github/license/DanySK/upgradle)
 [![Javadocs](https://www.javadoc.io/badge/org.danilopianini/upgradle.svg)](https://www.javadoc.io/doc/org.danilopianini/upgradle)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3803/badge)](https://bestpractices.coreinfrastructure.org/projects/3803)
