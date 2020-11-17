@@ -29,8 +29,8 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
             if (execFile?.exists() == true) {
                 // If under *nix, make gradlew executable
                 try {
-                    val originalPermissions = Files.getPosixFilePermissions(execFile.toPath())
-                    if (executeRights !in originalPermissions) {
+                    val originalPermissions: Set<PosixFilePermission> = Files.getPosixFilePermissions(execFile.toPath())
+                    if (!originalPermissions.containsAll(executeRights)) {
                         Files.setPosixFilePermissions(execFile.toPath(), originalPermissions + executeRights)
                     }
                 } catch (unsupported: UnsupportedOperationException) {

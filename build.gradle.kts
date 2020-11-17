@@ -70,6 +70,7 @@ compileKotlin.kotlinOptions {
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
+    allWarningsAsErrors = true
 }
 
 group = "org.danilopianini" // This must be configured for the generated pom.xml to work correctly

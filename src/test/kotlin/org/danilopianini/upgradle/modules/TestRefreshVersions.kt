@@ -2,13 +2,14 @@ package org.danilopianini.upgradle.modules
 
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
 
 typealias Artifacts = List<String>
 typealias OldVersions = List<String>
 typealias NewVersions = List<String>
-typealias MatchResult = Triple<Artifacts, OldVersions, NewVersions>
 
+@ExperimentalCoroutinesApi
 class TestRefreshVersions : FreeSpec(
     {
         "refreshversions should" - {
@@ -120,12 +121,6 @@ class TestRefreshVersions : FreeSpec(
             val matches = extractFrom(fileContent)
             matches.size shouldBe hasUpgradeCount
             test(matches.map { it[0] }, matches.map { it[1] }, matches.map { it[2] })
-        }
-
-        fun testThatSingleMatch(fileContent: String, test: (String, String, String) -> Unit) {
-            testThat(fileContent) { artifacts, oldVersions, newVersions ->
-                test(artifacts.first(), oldVersions.first(), newVersions.first())
-            }
         }
 
         fun testEqualityOf(
