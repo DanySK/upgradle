@@ -22,7 +22,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule(options) {
             if (localGradleVersion != null) {
                 logger.info("Detected Gradle $localGradleVersion")
                 val nextGradle = gradleVersions
-                    .filter { it > localGradleVersion && versionMatch.matches(it.downloadReference) }
+                    .filter { it > localGradleVersion && validVersionRegex.matches(it.toString()) }
                     .filterByStrategy()
                 if (nextGradle.iterator().hasNext()) {
                     logger.info("Gradle can be updated to: {}", nextGradle)
@@ -83,8 +83,6 @@ data class GradleVersion(
         rc: String? = null
     ) : this (major.toInt(), minor.toInt(), patch?.toIntOrNull(), rc?.toIntOrNull())
 
-    val downloadReference: String = "$major.$minor${ patch?.let { ".$it" } ?: "" }${ rc?.let { "-rc-$it" } ?: "" }"
-
     override fun compareTo(other: GradleVersion) =
         major.compareOrNull(other.major)
             ?: minor.compareOrNull(other.minor)
@@ -96,7 +94,7 @@ data class GradleVersion(
                 else -> rc.compareTo(other.rc)
             }
 
-    override fun toString() = downloadReference
+    override fun toString() = "$major.$minor${ patch?.let { ".$it" } ?: "" }${ rc?.let { "-rc-$it" } ?: "" }"
 
     companion object {
 

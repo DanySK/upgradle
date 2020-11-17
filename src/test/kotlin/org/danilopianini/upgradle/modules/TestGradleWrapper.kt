@@ -11,6 +11,7 @@ class TestGradleWrapper : StringSpec(
         "Gradle versions should be accessible" {
             GradleWrapper.gradleVersions shouldNotBe emptyList<GradleVersion>()
             GradleWrapper.gradleVersions shouldContain GradleVersion(6, 0)
+            GradleWrapper.gradleVersions shouldContain GradleVersion(6, 7)
         }
     }
 )
