@@ -30,16 +30,19 @@ import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.transport.RemoteRefUpdate
 import org.slf4j.LoggerFactory
 import java.io.File
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
 import kotlin.system.exitProcess
 
 class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgradle.yml") }) {
     val configuration = Configurator.load(configuration)
 
+    @ExperimentalPathApi
     fun runModule(repository: Repository, branch: Branch, module: Module, credentials: Credentials) {
         val user = repository.owner
         logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
         val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
-        val destination = createTempDir(workdirPrefix)
+        val destination = createTempDirectory(workdirPrefix).toFile()
         logger.debug("Working inside ${destination.absolutePath}")
         val git = repository.clone(branch, destination, credentials)
         val branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call().map { it.name }
@@ -139,6 +142,7 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                 git.checkout().setCreateBranch(true).setName(update.branch).call()
             }
 
+        @ExperimentalPathApi
         @ExperimentalCoroutinesApi
         @FlowPreview
         @JvmStatic
