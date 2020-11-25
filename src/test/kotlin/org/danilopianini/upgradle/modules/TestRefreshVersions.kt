@@ -4,11 +4,14 @@ import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.createTempDirectory
 
 typealias Artifacts = List<String>
 typealias OldVersions = List<String>
 typealias NewVersions = List<String>
 
+@ExperimentalPathApi
 @ExperimentalCoroutinesApi
 class TestRefreshVersions : FreeSpec(
     {
@@ -92,7 +95,7 @@ class TestRefreshVersions : FreeSpec(
                 val sourceTestFolder = ClassLoader
                     .getSystemResource("org/danilopianini/upgradle/test/refreshversions-aliases")
                     .file
-                val testFolder = createTempDir("upgradle", "test-refreshversions")
+                val testFolder = createTempDirectory("upgradle-test-refreshversions").toFile()
                 File(sourceTestFolder).copyRecursively(testFolder)
                 val entries = 7
                 RefreshVersions(mapOf("strategy" to listOf("next", "latest")))
