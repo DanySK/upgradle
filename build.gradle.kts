@@ -135,13 +135,12 @@ if (System.getenv("CI") == true.toString()) {
 }
 
 publishOnCentral {
-    projectDescription.set(
+    projectDescription =
         "A bot meant to pack updates and send pull requests." +
-            "Much like dependabot, but way more homemade and focused on Gradle."
-    )
-    projectLongName.set("UpGradle")
-    licenseName.set("GPL")
-    licenseUrl.set("https://www.gnu.org/licenses/gpl-3.0.en.html")
+        "Much like dependabot, but way more homemade and focused on Gradle."
+    projectLongName = "UpGradle"
+    licenseName = "GPL"
+    licenseUrl = "https://www.gnu.org/licenses/gpl-3.0.en.html"
 }
 
 publishing {
