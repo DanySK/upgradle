@@ -31,12 +31,15 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule(options) {
                 }
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
+                    val pullRequestMessage = """
+                        This pull request upgrades the Gradle wrapper in project ${ inProject(projectId) }
+                        from $localGradleVersion to $newerGradle.                       
+                    """.trimIndent()
                     SimpleOperation(
                         branch = "bump-gradle-wrapper-to-$newerGradle${projectDescriptor(projectId)}",
                         commitMessage = description,
                         pullRequestTitle = description,
-                        pullRequestMessage =
-                            "Gradle wrapper${ inProject(projectId) } $localGradleVersion -> $newerGradle."
+                        pullRequestMessage = pullRequestMessage
                     ) {
                         val newProperties = oldProperties.replace(versionMatch, "gradle-$newerGradle-bin.zip")
                         projectRoot.gradleWrapperProperties.writeText(newProperties)
