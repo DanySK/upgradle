@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+if [ $GITHUB_REPOSITORY = 'DanySK/upgradle' ]
+    then
+    ./gradlew publishKotlinMavenPublicationToCentralS01Repository
+    # Publish on GitHub. Fails due to overwritings, so it's ok to give up
+    ./gradlew publishKotlinMavenPublicationToGithubRepository --continue || true
+    MESSAGE=$(git tag -l --format='%(contents)' "$TAG")
+    PRELEASE=""
+    if [ -n "$TAG" ]
+    then
+        PRELEASE="-p"
+    fi
+    gh release create -n "$MESSAGE" $PRELEASE "$TAG" || true
+    for jar in build/libs/*; do
+        gh release upload "$TAG" --clobber "$jar"
+    done
+fi
