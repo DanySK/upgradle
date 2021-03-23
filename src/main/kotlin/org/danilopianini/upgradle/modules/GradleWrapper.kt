@@ -27,7 +27,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule(options) {
                 if (nextGradle.iterator().hasNext()) {
                     logger.info("Gradle can be updated to: {}", nextGradle)
                 } else {
-                    logger.info("The Gradle wrapper looks up to date here ($localGradleVersion)")
+                    logger.info("The Gradle wrapper looks up to date in {} ({})", projectRoot.name, localGradleVersion)
                 }
                 return nextGradle.map { newerGradle ->
                     val description = "Upgrade Gradle Wrapper to $newerGradle${inProject(projectId)}"
