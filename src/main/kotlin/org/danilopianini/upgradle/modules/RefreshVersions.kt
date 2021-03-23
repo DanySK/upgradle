@@ -28,14 +28,12 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
             val execFile = filesInRoot.find { it.name == executable }
             if (execFile?.exists() == true) {
                 // If under *nix, make gradlew executable
-                try {
+                runCatching {
                     val originalPermissions: Set<PosixFilePermission> = Files.getPosixFilePermissions(execFile.toPath())
                     if (!originalPermissions.containsAll(executeRights)) {
                         Files.setPosixFilePermissions(execFile.toPath(), originalPermissions + executeRights)
                     }
-                } catch (unsupported: UnsupportedOperationException) {
-                    logger.warn("The local file system does not support Unix permissions")
-                }
+                }.onFailure { logger.warn("The local file system does not support Unix permissions", it) }
                 val originalVersions = versionsFile.readText()
                 logger.info("Running refreshVersions")
                 when (val refresh = runRefresh(projectRoot)) {
