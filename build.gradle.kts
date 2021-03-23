@@ -33,6 +33,10 @@ repositories {
         url = uri("https://repo.eclipse.org/content/repositories/egit-releases/")
         content { includeGroup("org.eclipse.mylyn.github") }
     }
+    maven {
+        url = uri("https://repo.gradle.org/gradle/libs-releases")
+        content { includeGroup("org.gradle") }
+    }
 }
 
 gitSemVer {
@@ -51,6 +55,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph:_")
     implementation("io.arrow-kt:arrow-core:_")
     implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
+    implementation("org.gradle:gradle-tooling-api:_")
     implementation("org.yaml:snakeyaml:_")
     implementation(kotlin("stdlib-jdk8"))
 
@@ -65,7 +70,11 @@ dependencies {
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
-    freeCompilerArgs = listOf("-XXLanguage:+InlineClasses", "-Xopt-in=kotlin.RequiresOptIn")
+    freeCompilerArgs = listOf(
+        "-XXLanguage:+InlineClasses",
+        "-Xopt-in=kotlin.RequiresOptIn",
+        "-Xallow-result-return-type"
+    )
 }
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
