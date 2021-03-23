@@ -36,7 +36,7 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
                 logger.info("Running refreshVersions")
                 runRefresh(projectRoot)
                     .onFailure {
-                        logger.error("Could not refresh versions in {}.")
+                        logger.error("Could not refresh versions in {}.", projectRoot.absolutePath)
                         logger.error("Output Stream:\n{}", it.output)
                         logger.error("Error Stream:\n{}", it.error)
                     }
