@@ -151,7 +151,7 @@ publishOnCentral {
     projectLongName = "UpGradle"
     licenseName = "GPL"
     licenseUrl = "https://www.gnu.org/licenses/gpl-3.0.en.html"
-    repository("https://maven.pkg.github.com/alchemistsimulator/alchemist") {
+    repository("https://maven.pkg.github.com/danysk/upgradle") {
         user = "DanySK"
         password = System.getenv("GITHUB_TOKEN")
     }
