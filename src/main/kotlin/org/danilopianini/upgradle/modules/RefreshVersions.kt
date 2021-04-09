@@ -1,6 +1,5 @@
 package org.danilopianini.upgradle.modules
 
-import arrow.core.extensions.sequence.foldable.isEmpty
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.danilopianini.upgradle.api.OnFile
 import org.danilopianini.upgradle.api.Operation
@@ -53,38 +52,40 @@ class RefreshVersions(options: Map<String, Any>) : GradleRootModule(options) {
 
     private fun prepareUpdates(projectId: String, versionsFile: File, originalVersions: String): List<Operation> {
         val versionsContent = versionsFile.readText()
-        val dependenciesWithUpdates = extractUpdatesRegex.findAll(versionsContent)
+        val dependenciesWithUpdates = extractUpdatesRegex
+            .findAll(versionsContent)
+            .flatMap { match ->
+                val (descriptor, artifact, old, candidates) = match.destructured
+                extractVersionsRegex.findAll(candidates)
+                    .map { it.destructured.component1() }
+                    .filter { version -> validVersionRegex.matches(version) }
+                    .filterByStrategy()
+                    .map { new ->
+                        logger.info("Found update for {}: {} -> {}", artifact, old, new)
+                        val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
+                        SimpleOperation(
+                            branch = "bump-$artifact-to-$new${projectDescriptor(projectId)}",
+                            commitMessage = message,
+                            pullRequestTitle = message,
+                            pullRequestMessage = "This update was prepared for you by UpGradle, at your service."
+                        ) {
+                            val newVersionRegex = new.map { if (it in """\^$,.|?*+()[]{}""") """\$it""" else "$it" }
+                                .joinToString(separator = "")
+                            val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
+                            val updated = originalVersions
+                                .replace("$descriptor=$old", "$descriptor=$new")
+                                .replace(updateLineRegex, "")
+                            logger.info("Updating the version file")
+                            versionsFile.writeText(updated)
+                            logger.info("Version file updated")
+                            listOf(OnFile(versionsFile))
+                        }
+                    }
+            }.toList()
         if (dependenciesWithUpdates.isEmpty()) {
             logger.info("No updates available")
         }
-        return dependenciesWithUpdates.flatMap { match ->
-            val (descriptor, artifact, old, candidates) = match.destructured
-            extractVersionsRegex.findAll(candidates)
-                .map { it.destructured.component1() }
-                .filter { version -> validVersionRegex.matches(version) }
-                .filterByStrategy()
-                .map { new ->
-                    logger.info("Found update for {}: {} -> {}", artifact, old, new)
-                    val message = "Upgrade $artifact from $old to $new${inProject(projectId)}"
-                    SimpleOperation(
-                        branch = "bump-$artifact-to-$new${projectDescriptor(projectId)}",
-                        commitMessage = message,
-                        pullRequestTitle = message,
-                        pullRequestMessage = "This update was prepared for you by UpGradle, at your service."
-                    ) {
-                        val newVersionRegex = new.map { if (it in """\^$,.|?*+()[]{}""") """\$it""" else "$it" }
-                            .joinToString(separator = "")
-                        val updateLineRegex = Regex("""##\s*# available=$newVersionRegex\n""")
-                        val updated = originalVersions
-                            .replace("$descriptor=$old", "$descriptor=$new")
-                            .replace(updateLineRegex, "")
-                        logger.info("Updating the version file")
-                        versionsFile.writeText(updated)
-                        logger.info("Version file updated")
-                        listOf(OnFile(versionsFile))
-                    }
-                }
-        }.toList()
+        return dependenciesWithUpdates
     }
 
     @ExperimentalCoroutinesApi
