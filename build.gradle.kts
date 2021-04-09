@@ -54,7 +54,6 @@ dependencies {
     implementation("commons-io:commons-io:_")
     implementation("com.uchuhimo:konf:_")
     implementation("io.github.classgraph:classgraph:_")
-    implementation("io.arrow-kt:arrow-core:_")
     implementation("org.eclipse.mylyn.github:org.eclipse.egit.github.core:_")
     implementation("org.gradle:gradle-tooling-api:_")
     implementation("org.yaml:snakeyaml:_")

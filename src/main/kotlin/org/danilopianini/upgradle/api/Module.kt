@@ -1,9 +1,5 @@
 package org.danilopianini.upgradle.api
 
-import arrow.core.ListK
-import arrow.core.extensions.listk.applicative.applicative
-import arrow.core.fix
-import arrow.core.k
 import io.github.classgraph.ClassGraph
 import org.danilopianini.upgradle.config.UpgradleModule
 import java.io.File
@@ -15,7 +11,7 @@ interface Module : (File) -> List<Operation> {
 
     companion object {
         private fun ClassGraph.blackListPackages(vararg packageNames: String) = rejectPackages(*packageNames)
-        private val subclasses by lazy {
+        private val subclasses: List<Class<out Module>> by lazy {
             ClassGraph()
                 .blackListPackages("java", "javax")
                 .enableAllInfo()
@@ -27,22 +23,15 @@ interface Module : (File) -> List<Operation> {
         }
 
         @Suppress("UNCHECKED_CAST")
-        val UpgradleModule.asModule: Module get() = ListK.applicative()
-            .mapN(
-                // Cartesian product of:
-                // Methods for extracting possible names
-                listOf(Class<*>::getCanonicalName, Class<*>::getSimpleName).k(),
-                // Whether to ignore case
-                listOf(false, true).k()
-            ) { (classNameOf, withCase) ->
-                subclasses.find { name.equals(classNameOf(it), ignoreCase = withCase) }
+        val UpgradleModule.asModule: Module get() = sequenceOf(Class<*>::getCanonicalName, Class<*>::getSimpleName)
+            .flatMap { nameOf ->
+                sequenceOf(false, true).flatMap { ignoreCase ->
+                    subclasses.find { nameOf(it).equals(name, ignoreCase) }?.let { sequenceOf(it) } ?: emptySequence()
+                }
             }
-            .fix()
-            .filterNotNull()
             .firstOrNull()
             ?.constructors
-            ?.filter { it.parameterCount == 1 && Map::class.java.isAssignableFrom(it.parameterTypes[0]) }
-            ?.firstOrNull()
+            ?.firstOrNull { it.parameterCount == 1 && Map::class.java.isAssignableFrom(it.parameterTypes[0]) }
             ?.let { it as Constructor<out Module> }
             ?.newInstance(options)
             ?: throw IllegalStateException("No module available for $this")
