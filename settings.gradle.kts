@@ -1,4 +1,5 @@
 import de.fayard.refreshVersions.bootstrapRefreshVersions
+import de.fayard.refreshVersions.migrateRefreshVersionsIfNeeded
 import org.danilopianini.VersionAliases.justAdditionalAliases
 buildscript {
     repositories {
@@ -7,9 +8,12 @@ buildscript {
     }
     dependencies {
         classpath("de.fayard.refreshVersions:refreshVersions:0.9.7")
+////                                             # available:0.10.0")
         classpath("org.danilopianini:refreshversions-aliases:+")
     }
 }
+migrateRefreshVersionsIfNeeded("0.9.7") // Will be automatically removed by refreshVersions when upgraded to the latest version.
+
 bootstrapRefreshVersions(justAdditionalAliases)
 
 plugins {

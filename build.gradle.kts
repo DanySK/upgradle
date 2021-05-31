@@ -35,6 +35,8 @@ gitSemVer {
     version = computeGitSemVer()
 }
 
+val additionalTools: Configuration by configurations.creating
+
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:_")
 
@@ -56,6 +58,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:_")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:_")
     testImplementation("org.mockito:mockito-core:_")
+    additionalTools("org.jacoco:org.jacoco.core:_")
 }
 
 val compileKotlin: KotlinCompile by tasks
@@ -81,6 +84,13 @@ tasks.test {
         showStandardStreams = true
         exceptionFormat = TestExceptionFormat.FULL
     }
+}
+
+jacoco {
+    toolVersion = additionalTools.resolvedConfiguration.resolvedArtifacts
+        .find { "jacoco" in it.moduleVersion.id.name }
+        ?.moduleVersion?.id?.version
+        ?: toolVersion
 }
 
 tasks.jacocoTestReport {
