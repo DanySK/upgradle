@@ -90,7 +90,7 @@ tasks.jacocoTestReport {
 }
 
 detekt {
-    failFast = true
+    allRules = true
     buildUponDefaultConfig = true
     config = files("$projectDir/config/detekt.yml")
     reports {
