@@ -71,12 +71,9 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                     logger.info("Push successful, creating a pull request")
                     try {
                         retry {
-                            val pullRequest = repository.createPullRequest(
-                                update,
-                                head = update.branch,
-                                base = branch.name,
-                                credentials = credentials
-                            )
+                            val head = update.branch
+                            val base = branch.name
+                            val pullRequest = repository.createPullRequest(update, head, base, credentials)
                             logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
                             repository.applyLabels(configuration.labels, pullRequest, credentials)
                         }
