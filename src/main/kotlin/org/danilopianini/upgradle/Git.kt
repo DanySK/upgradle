@@ -69,7 +69,7 @@ fun Repository.createPullRequest(update: Operation, head: String, base: String, 
                 .setTitle(update.pullRequestTitle)
                 .setBody(update.pullRequestMessage)
                 .setBodyText(update.pullRequestMessage)
-            )
+        )
 
 fun Repository.applyLabels(labels: Collection<Label>, pr: PullRequest, credentials: Credentials) {
     if (labels.isNotEmpty()) {
