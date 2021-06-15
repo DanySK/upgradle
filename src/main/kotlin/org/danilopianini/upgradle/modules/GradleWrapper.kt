@@ -7,6 +7,7 @@ import org.danilopianini.upgradle.api.SimpleOperation
 import org.danilopianini.upgradle.modules.GradleVersion.Companion.asGradleVersion
 import java.io.File
 import java.net.URL
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
@@ -59,7 +60,7 @@ class GradleWrapper(options: Map<String, Any>) : GradleRootModule(options) {
         private val versionExtractor = Regex("""gradle-${GradleVersion.distVersionRegex}-bin\.zip""")
         private val File.gradleWrapperProperties get() = File("$absolutePath/gradle/wrapper/gradle-wrapper.properties")
 
-        val gradleVersions: Sequence<GradleVersion> by CachedFor(1.hours) {
+        val gradleVersions: Sequence<GradleVersion> by CachedFor(Duration.hours(1)) {
             val response = URL("https://services.gradle.org/distributions/").readText()
             versionExtractor.findAll(response)
                 .map {

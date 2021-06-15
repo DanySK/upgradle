@@ -7,6 +7,7 @@ import org.danilopianini.upgradle.api.SimpleOperation
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.net.URL
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.hours
 
@@ -34,7 +35,7 @@ class TravisDist(options: Map<String, Any> = emptyMap()) : AbstractModule(option
                                 branch = "bump-travis-dist-to-$newDist",
                                 commitMessage = "Update travis 'dist' to $newDist",
                                 pullRequestTitle = "Use 'dist: $newDist' on Travis",
-                                pullRequestMessage = "Update the Ubuntu version on Travis CI to ${newDist.capitalize()}"
+                                pullRequestMessage = "Update the Ubuntu version on Travis CI to $newDist"
                             ) {
                                 currentDist.toRegex().findAll(travisYmlContent)
                                     .map { travisYmlContent.replaceRange(it.range, newDist) }
@@ -69,7 +70,7 @@ class TravisDist(options: Map<String, Any> = emptyMap()) : AbstractModule(option
         private val extractVersionFromWikipedia =
             """href="#Ubuntu_\d+\.\d+_LTS_\((\w+)_\w+\)""".toRegex()
         @ExperimentalTime
-        val availableDistributions: List<String> by CachedFor(1.hours) {
+        val availableDistributions: List<String> by CachedFor(Duration.hours(1)) {
             val rubyDescriptor = URL(travisDistRbURL).readText()
             val availableOnTravis = extractVersionFromTravis.findAll(rubyDescriptor).asSequence()
                 .map { it.destructured.component1() }
