@@ -41,9 +41,9 @@ abstract class AbstractModule(options: Map<String, Any> = emptyMap()) : Module {
     }
 
     /**
-     * Applies a filtering [strategy] to a sequence.
-     * If [strategy] is "next", takes the first element.
-     * If [strategy] is "latest", takes the last element.
+     * Applies a filtering strategy to a sequence.
+     * If strategy is "next", takes the first element.
+     * If strategy is "latest", takes the last element.
      * Otherwise, it returns the list as-is
      */
     fun <T : Any> Sequence<T>.filterByStrategy(): Sequence<T> =
@@ -66,9 +66,9 @@ abstract class AbstractModule(options: Map<String, Any> = emptyMap()) : Module {
         private val String.allVariants
             get() = listOf(
                 this,
-                this.toLowerCase(),
-                this.toUpperCase(),
-                this.capitalize()
+                this.lowercase(),
+                this.uppercase(),
+                this.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             ).distinct()
     }
 }

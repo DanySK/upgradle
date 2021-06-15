@@ -6,6 +6,7 @@ import com.uchuhimo.konf.source.yaml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
@@ -33,12 +34,14 @@ import java.io.File
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlin.system.exitProcess
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgradle.yml") }) {
     val configuration = Configurator.load(configuration)
 
     @ExperimentalPathApi
-    fun runModule(repository: Repository, branch: Branch, module: Module, credentials: Credentials) {
+    suspend fun runModule(repository: Repository, branch: Branch, module: Module, credentials: Credentials) {
         val user = repository.owner
         logger.info("Running ${module.name} on $user/${repository.name} on branch ${branch.name}")
         val workdirPrefix = "upgradle-${user}_${repository.name}_${branch.name}_${module.name}"
@@ -67,14 +70,16 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
                 if (pushResults.isNotEmpty() && pushResults.all { it.status == RemoteRefUpdate.Status.OK }) {
                     logger.info("Push successful, creating a pull request")
                     try {
-                        val pullRequest = repository.createPullRequest(
-                            update,
-                            head = update.branch,
-                            base = branch.name,
-                            credentials = credentials
-                        )
-                        logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
-                        repository.applyLabels(configuration.labels, pullRequest, credentials)
+                        retry {
+                            val pullRequest = repository.createPullRequest(
+                                update,
+                                head = update.branch,
+                                base = branch.name,
+                                credentials = credentials
+                            )
+                            logger.info("Pull request #${pullRequest.number} opened ${update.branch} -> ${branch.name}")
+                            repository.applyLabels(configuration.labels, pullRequest, credentials)
+                        }
                     } catch (requestException: RequestException) {
                         when (requestException.status) {
                             UNPROCESSABLE_ENTITY -> println(requestException.message)
@@ -92,6 +97,8 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
     companion object {
 
         private const val UNPROCESSABLE_ENTITY = 422
+        @OptIn(ExperimentalTime::class)
+        private val DEFAULT_WAIT: Duration = Duration.Companion.minutes(5)
         internal val logger = LoggerFactory.getLogger(UpGradle::class.java)
 
         private fun upgradleFromArguments(args: Array<String>) = when (args.size) {
@@ -131,6 +138,24 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             }
             return this
         }
+
+        @OptIn(ExperimentalTime::class)
+        suspend fun <T> retry(
+            times: Int = 10,
+            wait: Duration = DEFAULT_WAIT,
+            body: () -> T
+        ): T = (1..times).map { id ->
+                runCatching(body).getOrElse { error ->
+                    if (id < times) {
+                        logger.error("An error occurred at attempt $id/$times, waiting $wait before retrying", error)
+                        delay(wait)
+                    } else {
+                        logger.error("An error occurred at attempt $id/$times. No further retries")
+                        throw error
+                    }
+                    null
+                }
+            }.filterNotNull().first()
 
         fun prepareRepository(git: Git, branch: Branch, update: Operation): Boolean =
             git.branchList().call().none { it.name == branch.name }.then {
