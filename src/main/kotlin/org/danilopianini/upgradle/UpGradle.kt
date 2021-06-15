@@ -144,7 +144,8 @@ class UpGradle(configuration: Config.() -> Config = { from.yaml.resource("upgrad
             times: Int = 10,
             wait: Duration = DEFAULT_WAIT,
             body: () -> T
-        ): T = (1..times).map { id ->
+        ): T = (1..times)
+            .map { id ->
                 runCatching(body).getOrElse { error ->
                     if (id < times) {
                         logger.error("An error occurred at attempt $id/$times, waiting $wait before retrying", error)
