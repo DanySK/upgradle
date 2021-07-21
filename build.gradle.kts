@@ -32,10 +32,6 @@ repositories {
     }
 }
 
-gitSemVer {
-    version = computeGitSemVer()
-}
-
 val additionalTools: Configuration by configurations.creating
 
 dependencies {
