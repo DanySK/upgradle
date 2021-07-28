@@ -1,20 +1,22 @@
 import org.danilopianini.VersionAliases.justAdditionalAliases
+
+plugins {
+    id("de.fayard.refreshVersions") version "0.10.1"
+    id("com.gradle.enterprise") version "3.6.3"
+}
+
+refreshVersions {
+    extraArtifactVersionKeyRules = justAdditionalAliases
+}
+
 buildscript {
     repositories {
+        gradlePluginPortal()
         mavenCentral()
     }
     dependencies {
         classpath("org.danilopianini:refreshversions-aliases:+")
     }
-}
-
-plugins {
-    id("com.gradle.enterprise") version "3.6.3"
-    id("de.fayard.refreshVersions") version "0.10.1"
-}
-
-refreshVersions {
-    extraArtifactVersionKeyRules = justAdditionalAliases
 }
 
 gradleEnterprise {
